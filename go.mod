@@ -1,4 +1,4 @@
-module github.com/Samarthbhat52/soundswitch
+module github.com/Samarthbhat52/soundport
 
 go 1.23.0
 

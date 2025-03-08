@@ -1,7 +1,7 @@
 package main
 
-import "fmt"
+import "github.com/Samarthbhat52/soundport/cmd"
 
 func main() {
-	fmt.Println("Hello sound port.")
+	cmd.Execute()
 }
