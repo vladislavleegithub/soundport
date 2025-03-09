@@ -12,6 +12,6 @@ func init() {
 var searchCmd = &cobra.Command{
 	Use: "search",
 	Run: func(cmd *cobra.Command, args []string) {
-		ytmusic.SearchSongYT("eyes bazzi")
+		ytmusic.SearchSongYT([]string{"eyes, bazzi", "Wrapped Around Your Finger, Post Malone"})
 	},
 }

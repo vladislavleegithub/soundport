@@ -3,62 +3,60 @@ package ytmusic
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 )
 
 // FIX: ADD PROPER ERROR RETURNS
-func SearchSongYT(songName string) {
-	// Init context
+func SearchSongYT(songName []string) ([]string, error) {
+	// Init context and req client
 	ctx := newContext()
+	client := &http.Client{}
 
 	// Init a search body
 	body := SearchRequestBody{
-		BaseRequestBody: BaseRequestBody{
-			Ctx: ctx,
-		},
-		Query:  songName,
+		Ctx: ctx,
+		// Query:  songName,
 		Params: PARAM,
 	}
 
-	reqBody, err := json.Marshal(body)
-	if err != nil {
-		fmt.Println("json marshal error: ", err)
-		return
-	}
-
-	client := &http.Client{}
-	req, err := http.NewRequest("POST", YTMUSIC_SEARCH, bytes.NewBuffer(reqBody))
-	if err != nil {
-		fmt.Println("req prep error: ", err)
-		return
-	}
-
-	initHeaders(req)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("error fetching song: ", err)
-		return
-	}
-	defer resp.Body.Close()
-
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("error reading resp body: ", err)
-		return
-	}
-
+	// Init return struct and videoIds array
 	ret := ResponseStruct{}
-	err = json.Unmarshal(respBody, &ret)
-	if err != nil {
-		fmt.Println("error unmarshalling resp: ", err)
-		return
+	var videoIds []string
+
+	for _, sn := range songName {
+		body.Query = sn
+		reqBody, err := json.Marshal(body)
+		if err != nil {
+			return nil, err
+		}
+
+		req, err := http.NewRequest("POST", YTMUSIC_SEARCH, bytes.NewBuffer(reqBody))
+		if err != nil {
+			return nil, err
+		}
+
+		resp, err := client.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		defer resp.Body.Close()
+
+		respBody, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+
+		err = json.Unmarshal(respBody, &ret)
+		if err != nil {
+			return nil, err
+		}
+
+		vidId := getVideoId(&ret)
+		videoIds = append(videoIds, vidId)
 	}
 
-	vidId := getVideoId(&ret)
-	fmt.Println(vidId)
+	return videoIds, nil
 }
 
 func getVideoId(ret *ResponseStruct) string {

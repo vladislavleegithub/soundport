@@ -11,21 +11,22 @@ const (
 	PARAM            = "EgWKAQIIAWoQEAMQBBAJEAoQBRAREBAQFQ%3D%3D"
 )
 
-type BaseRequestBody struct {
-	Ctx *Context `json:"context"`
-}
+const (
+	PRIVATE StatusType = "PRIVATE"
+	PUBLIC  StatusType = "PUBLIC"
+)
 
 type SearchRequestBody struct {
-	BaseRequestBody
-	Query  string `json:"query"`
-	Params string `json:"params"`
+	Ctx    *Context `json:"context"`
+	Query  string   `json:"query"`
+	Params string   `json:"params"`
 }
 
 type CreatePlaylistRequestBody struct {
-	BaseRequestBody
-	Title         string   `json:"title"`
-	PrivacyStatus string   `json:"privacyStatus"`
-	VideoIds      []string `json:"videoIds"`
+	Ctx           *Context   `json:"context"`
+	Title         string     `json:"title"`
+	PrivacyStatus StatusType `json:"privacyStatus"`
+	VideoIds      []string   `json:"videoIds"`
 }
 
 type Context struct {

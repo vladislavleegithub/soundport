@@ -8,17 +8,17 @@ import (
 	"net/http"
 )
 
-func PlaylistAdd(songs []string) error {
+type StatusType string
+
+func PlaylistAdd(name string, status StatusType, songs []string) error {
 	// init context
 	ctx := newContext()
 
 	// prep body
 	body := CreatePlaylistRequestBody{
-		BaseRequestBody: BaseRequestBody{
-			Ctx: ctx,
-		},
-		Title:         "test playlist",
-		PrivacyStatus: "PRIVATE",
+		Ctx:           ctx,
+		Title:         name,
+		PrivacyStatus: status,
 		VideoIds:      songs,
 	}
 
