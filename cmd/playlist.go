@@ -14,15 +14,15 @@ func init() {
 var playlistCmd = &cobra.Command{
 	Use: "playlist",
 	Run: func(cmd *cobra.Command, args []string) {
-		vidIds, err := ytmusic.SearchSongYT(
-			[]string{"eyes, bazzi", "Wrapped Around Your Finger, Post Malone"},
-		)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
+		// vidIds, err := ytmusic.SearchSongYT(
+		// 	[]string{"eyes, bazzi", "Wrapped Around Your Finger, Post Malone"},
+		// )
+		// if err != nil {
+		// 	fmt.Println(err)
+		// 	return
+		// }
 
-		err = ytmusic.PlaylistAdd("Test", ytmusic.PUBLIC, vidIds)
+		err := ytmusic.PlaylistAdd("Test", ytmusic.PUBLIC, []string{"CpTr4USXjQw"})
 		if err != nil {
 			fmt.Println(err)
 			return

@@ -1,13 +1,11 @@
 package ytmusic
 
 import (
-	"bytes"
 	"encoding/json"
-	"io"
 	"net/http"
+	"sync"
 )
 
-// FIX: ADD PROPER ERROR RETURNS
 func SearchSongYT(songName []string) ([]string, error) {
 	// Init context and req client
 	ctx := newContext()
@@ -21,8 +19,9 @@ func SearchSongYT(songName []string) ([]string, error) {
 	}
 
 	// Init return struct and videoIds array
-	ret := ResponseStruct{}
 	var videoIds []string
+	var wg sync.WaitGroup
+	ch := make(chan string, len(songName))
 
 	for _, sn := range songName {
 		body.Query = sn
@@ -31,36 +30,48 @@ func SearchSongYT(songName []string) ([]string, error) {
 			return nil, err
 		}
 
-		req, err := http.NewRequest("POST", YTMUSIC_SEARCH, bytes.NewBuffer(reqBody))
-		if err != nil {
-			return nil, err
-		}
+		wg.Add(1)
+		go makeRequest(*client, reqBody, &wg, ch)
+	}
 
-		resp, err := client.Do(req)
-		if err != nil {
-			return nil, err
-		}
-		defer resp.Body.Close()
+	wg.Wait()
+	close(ch)
 
-		respBody, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return nil, err
-		}
-
-		err = json.Unmarshal(respBody, &ret)
-		if err != nil {
-			return nil, err
-		}
-
-		vidId := getVideoId(&ret)
-		videoIds = append(videoIds, vidId)
+	for i := range ch {
+		videoIds = append(videoIds, i)
 	}
 
 	return videoIds, nil
 }
 
 func getVideoId(ret *ResponseStruct) string {
-	return ret.Contents.TabbedSearchResultsRenderer.Tabs[0].TabRenderer.Content.SectionListRenderer.Contents[0].MusicShelfRenderer.Contents[0].MusicResponsiveListItemRenderer.PlaylistItemData.VideoID
+	// I hate how google structured their data here :(
+	// The following code will be hard to look at.
+	if ret == nil {
+		return ""
+	}
+
+	tab := ret.Contents.TabbedSearchResultsRenderer.Tabs
+	if len(tab) == 0 {
+		return ""
+	}
+
+	sectionListContents := tab[0].TabRenderer.Content.SectionListRenderer.Contents
+	if len(sectionListContents) == 0 {
+		return ""
+	}
+
+	musicShelfContent := sectionListContents[0].MusicShelfRenderer.Contents
+	if len(musicShelfContent) == 0 {
+		musicShelfContent = sectionListContents[1].MusicShelfRenderer.Contents
+		// If the song is not in the first two suggested, return nothing.
+		//	Not worth checking the others.
+		if len(musicShelfContent) == 0 {
+			return ""
+		}
+	}
+
+	return musicShelfContent[0].MusicResponsiveListItemRenderer.PlaylistItemData.VideoID
 }
 
 type ResponseStruct struct {
@@ -93,3 +104,16 @@ type ResponseStruct struct {
 		} `json:"tabbedSearchResultsRenderer"`
 	} `json:"contents"`
 }
+
+/*
+	if len(
+		ret.Contents.TabbedSearchResultsRenderer.Tabs[0].TabRenderer.Content.SectionListRenderer.Contents[0].MusicShelfRenderer.Contents,
+	) == 0 {
+		fmt.Println(
+			ret.Contents.TabbedSearchResultsRenderer.Tabs[0].TabRenderer.Content.SectionListRenderer.Contents[1],
+		)
+		return "NO DATA"
+	}
+	return ret.Contents.TabbedSearchResultsRenderer.Tabs[0].TabRenderer.Content.SectionListRenderer.Contents[0].MusicShelfRenderer.Contents[0].MusicResponsiveListItemRenderer.PlaylistItemData.VideoID
+
+*/

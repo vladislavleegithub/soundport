@@ -6,7 +6,7 @@ import (
 
 const (
 	YTMUSIC_BASE_URL = "https://music.youtube.com"
-	YTMUSIC_SEARCH   = YTMUSIC_BASE_URL + "/youtubei/v1/search"
+	YTMUSIC_SEARCH   = YTMUSIC_BASE_URL + "/youtubei/v1/search?limit=1"
 	YTMUSIC_PLAYLIST = YTMUSIC_BASE_URL + "/youtubei/v1/playlist/create"
 	PARAM            = "EgWKAQIIAWoQEAMQBBAJEAoQBRAREBAQFQ%3D%3D"
 )
