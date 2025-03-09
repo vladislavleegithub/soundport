@@ -4,15 +4,28 @@ import (
 	"net/http"
 )
 
-const YTMUSIC_BASE_URL = "https://music.youtube.com"
+const (
+	YTMUSIC_BASE_URL = "https://music.youtube.com"
+	YTMUSIC_SEARCH   = YTMUSIC_BASE_URL + "/youtubei/v1/search"
+	YTMUSIC_PLAYLIST = YTMUSIC_BASE_URL + "/youtubei/v1/playlist/create"
+	PARAM            = "EgWKAQIIAWoQEAMQBBAJEAoQBRAREBAQFQ%3D%3D"
+)
 
-type RequstBody struct {
-	Context `       json:"context"`
-	Query   string `json:"query"`
+type BaseRequestBody struct {
+	Ctx *Context `json:"context"`
 }
 
-type BasePayload struct {
-	Body RequstBody
+type SearchRequestBody struct {
+	BaseRequestBody
+	Query  string `json:"query"`
+	Params string `json:"params"`
+}
+
+type CreatePlaylistRequestBody struct {
+	BaseRequestBody
+	Title         string   `json:"title"`
+	PrivacyStatus string   `json:"privacyStatus"`
+	VideoIds      []string `json:"videoIds"`
 }
 
 type Context struct {
@@ -31,7 +44,8 @@ func initHeaders(r *http.Request) {
 	)
 	r.Header.Add("accept", "*/*")
 	r.Header.Add("content-type", "application/json")
-	r.Header.Add("origin", YTMUSIC_BASE_URL)
+	r.Header.Add("X-origin", YTMUSIC_BASE_URL)
+	r.Header.Add("Origin", YTMUSIC_BASE_URL)
 }
 
 func sendGetRequest() (*http.Response, error) {
@@ -42,9 +56,6 @@ func sendGetRequest() (*http.Response, error) {
 	}
 
 	initHeaders(req)
-
-	// Add additional headers
-	req.Header.Add("content-encoding", "gzip")
 
 	resp, err := client.Do(req)
 	if err != nil {
