@@ -2,6 +2,7 @@ package ytmusic
 
 import (
 	"net/http"
+	"time"
 )
 
 const (
@@ -38,6 +39,16 @@ type Context struct {
 	} `json:"client"`
 }
 
+func initContext() *Context {
+	context := &Context{}
+	context.Client.Hl = "en"
+	context.Client.Gl = "IN"
+	context.Client.ClientName = "WEB_REMIX"
+	context.Client.ClientVersion = "1." + time.Now().Format("20060102") + ".01.00"
+
+	return context
+}
+
 func initHeaders(r *http.Request) {
 	r.Header.Add(
 		"user-agent",
@@ -47,21 +58,4 @@ func initHeaders(r *http.Request) {
 	r.Header.Add("content-type", "application/json")
 	r.Header.Add("X-origin", YTMUSIC_BASE_URL)
 	r.Header.Add("Origin", YTMUSIC_BASE_URL)
-}
-
-func sendGetRequest() (*http.Response, error) {
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", YTMUSIC_BASE_URL, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	initHeaders(req)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
 }

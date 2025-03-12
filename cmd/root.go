@@ -36,6 +36,7 @@ func init() {
 
 func initConfig() {
 	viper.SetDefault("yt-Cookie", "")
+	viper.SetDefault("yt-auth-token", "")
 
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)

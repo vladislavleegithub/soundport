@@ -1,14 +1,17 @@
 package ytmusic
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 	"sync"
 )
 
 func SearchSongYT(songName []string) ([]string, error) {
 	// Init context and req client
-	ctx := newContext()
+	ctx := initContext()
 	client := &http.Client{}
 
 	// Init a search body
@@ -31,7 +34,7 @@ func SearchSongYT(songName []string) ([]string, error) {
 		}
 
 		wg.Add(1)
-		go makeRequest(*client, reqBody, &wg, ch)
+		go getSongInfo(*client, reqBody, &wg, ch)
 	}
 
 	wg.Wait()
@@ -42,6 +45,40 @@ func SearchSongYT(songName []string) ([]string, error) {
 	}
 
 	return videoIds, nil
+}
+
+func getSongInfo(client http.Client, reqBody []byte, wg *sync.WaitGroup, ch chan<- string) {
+	defer wg.Done()
+
+	ret := ResponseStruct{}
+
+	req, err := http.NewRequest("POST", YTMUSIC_SEARCH, bytes.NewBuffer(reqBody))
+	if err != nil {
+		fmt.Println("ERROR: ", err)
+		return
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("ERROR: ", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("ERROR: ", err)
+		return
+	}
+
+	err = json.Unmarshal(respBody, &ret)
+	if err != nil {
+		fmt.Println("ERROR: ", err)
+		return
+	}
+
+	vidId := getVideoId(&ret)
+	ch <- vidId
 }
 
 func getVideoId(ret *ResponseStruct) string {
@@ -104,16 +141,3 @@ type ResponseStruct struct {
 		} `json:"tabbedSearchResultsRenderer"`
 	} `json:"contents"`
 }
-
-/*
-	if len(
-		ret.Contents.TabbedSearchResultsRenderer.Tabs[0].TabRenderer.Content.SectionListRenderer.Contents[0].MusicShelfRenderer.Contents,
-	) == 0 {
-		fmt.Println(
-			ret.Contents.TabbedSearchResultsRenderer.Tabs[0].TabRenderer.Content.SectionListRenderer.Contents[1],
-		)
-		return "NO DATA"
-	}
-	return ret.Contents.TabbedSearchResultsRenderer.Tabs[0].TabRenderer.Content.SectionListRenderer.Contents[0].MusicShelfRenderer.Contents[0].MusicResponsiveListItemRenderer.PlaylistItemData.VideoID
-
-*/
