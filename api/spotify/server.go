@@ -9,42 +9,47 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/charmbracelet/log"
 	"github.com/spf13/viper"
 )
 
-func (c *Credentials) StartHttpServer(ch chan string) error {
+func (c *Credentials) StartHttpServer(ch chan int) error {
 	handleCallback := func(w http.ResponseWriter, r *http.Request) {
 		// Unpack query params
-		params, err := url.ParseQuery(r.URL.String())
+		params, err := url.ParseQuery(r.URL.RawQuery)
 		if err != nil {
 			fmt.Println("Error decoding query params: ", err.Error())
+			ch <- -1
+			return
 		}
 
 		error := params.Get("error")
 		if error != "" {
-			fmt.Println("Error authenticating: ", error)
-			ch <- error
+			fmt.Println("Permission denied: ", error)
+			ch <- -1
 			return
 		}
 
-		// TODO: Compare state token to the one created serverside. later.
-		authCode := params.Get("/callback?code")
+		// Check state sent from spotify
+		state := params.Get("state")
+		if state != c.State {
+			fmt.Println("State mismatch error")
+			return
+		}
+
+		authCode := params.Get("code")
 		if authCode == "" {
 			fmt.Println("No auth token: ", authCode)
-			ch <- "error"
+			ch <- -1
 			return
 		}
 
 		// Get access_token and refresh_token
-		status, err := c.getAccessToken(authCode)
+		_, err = c.getAccessToken(authCode)
 		if err != nil {
-			fmt.Println("ERROR GETTING ACCESS TOKEN: ", err)
+			fmt.Println("Error getting access token: ", err)
 		}
-		ch <- status
+		ch <- 0
 	}
-
-	log.Infof("Listening to server on address: %s", server_url)
 
 	// route handlers
 	http.HandleFunc("/callback", handleCallback)
@@ -82,7 +87,6 @@ func (c *Credentials) getAccessToken(authCode string) (string, error) {
 	authResponse := Auth{}
 	decoder := json.NewDecoder(resp.Body)
 	err = decoder.Decode(&authResponse)
-	fmt.Println("BODY: ", authResponse)
 	if err != nil {
 		return "", err
 	}

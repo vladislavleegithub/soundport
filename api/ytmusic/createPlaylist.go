@@ -37,7 +37,7 @@ func PlaylistAdd(name string, status StatusType, songs []string) error {
 	}
 
 	// Prep headers
-	err = header(req)
+	err = constructHeader(req)
 	if err != nil {
 		return err
 	}
@@ -56,7 +56,7 @@ func PlaylistAdd(name string, status StatusType, songs []string) error {
 	return nil
 }
 
-func header(req *http.Request) error {
+func constructHeader(req *http.Request) error {
 	// Init base headers
 	initHeaders(req)
 

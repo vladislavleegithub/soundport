@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"net/url"
 
+	"github.com/pkg/browser"
 	"github.com/spf13/viper"
 )
 
@@ -34,15 +35,18 @@ type Auth struct {
 type Credentials struct {
 	ClientId     string
 	ClientSecret string
+	State        string
 }
 
 func NewCredentials() *Credentials {
 	clientId := viper.GetString("spfy-id")
 	clientSecret := viper.GetString("spfy-secret")
+	state := RandStringBytes(16)
 
 	return &Credentials{
 		ClientId:     clientId,
 		ClientSecret: clientSecret,
+		State:        state,
 	}
 }
 
@@ -52,14 +56,12 @@ func (c *Credentials) GetAuthURL() string {
 		log.Fatal(err)
 	}
 
-	state := RandStringBytes(16)
-
 	q := u.Query()
 	q.Set("response_type", "code")
 	q.Set("client_id", c.ClientId)
 	q.Set("scope", scope)
 	q.Set("redirect_uri", "http://"+redirect_url)
-	q.Set("state", state)
+	q.Set("state", c.State)
 
 	// Encode the Query
 	u.RawQuery = q.Encode()
@@ -73,4 +75,10 @@ func RandStringBytes(n int) string {
 		b[i] = letterBytes[rand.Intn(len(letterBytes))]
 	}
 	return string(b)
+}
+
+func (c *Credentials) OpenBrowser(url string) {
+	browser.Stdout = nil
+	browser.Stderr = nil
+	browser.OpenURL(url)
 }

@@ -21,9 +21,9 @@ func (m model) View() string {
 	}
 	fmt.Fprintf(&b, "\n\n%s\n\n", *button)
 
-	b.WriteString(helpStyle.Render("cursor mode is "))
-	b.WriteString(cursorModeHelpStyle.Render(m.cursorMode.String()))
-	b.WriteString(helpStyle.Render(" (ctrl+r to change style)"))
+	b.WriteString(helpStyle.Render("Press enter on "))
+	b.WriteString(focusedButton)
+	b.WriteString(helpStyle.Render(" to save credentials."))
 
 	return b.String()
 }
