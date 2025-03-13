@@ -4,28 +4,26 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"sync"
 )
 
 func SearchSongYT(songName []string) ([]string, error) {
-	// Init context and req client
+	// Init context
 	ctx := initContext()
 	client := &http.Client{}
 
-	// Init a search body
 	body := SearchRequestBody{
-		Ctx: ctx,
-		// Query:  songName,
+		Ctx:    ctx,
 		Params: PARAM,
 	}
 
-	// Init return struct and videoIds array
+	// Returned video Ids
 	var videoIds []string
 	var wg sync.WaitGroup
 	ch := make(chan string, len(songName))
 
+	// Run a go routine for every song name
 	for _, sn := range songName {
 		body.Query = sn
 		reqBody, err := json.Marshal(body)
@@ -41,6 +39,11 @@ func SearchSongYT(songName []string) ([]string, error) {
 	close(ch)
 
 	for i := range ch {
+		if i == "" {
+			// TODO: Handle not found songs.
+			// Currently we are just skipping them without informing.
+			continue
+		}
 		videoIds = append(videoIds, i)
 	}
 
@@ -50,30 +53,25 @@ func SearchSongYT(songName []string) ([]string, error) {
 func getSongInfo(client http.Client, reqBody []byte, wg *sync.WaitGroup, ch chan<- string) {
 	defer wg.Done()
 
-	ret := ResponseStruct{}
-
 	req, err := http.NewRequest("POST", YTMUSIC_SEARCH, bytes.NewBuffer(reqBody))
 	if err != nil {
-		fmt.Println("ERROR: ", err)
+		fmt.Println("Error constructing request: ", err)
 		return
 	}
 
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("ERROR: ", err)
+		fmt.Println("Error sending request: ", err)
 		return
 	}
 	defer resp.Body.Close()
 
-	respBody, err := io.ReadAll(resp.Body)
+	// Read body into a struct
+	ret := ResponseStruct{}
+	decoder := json.NewDecoder(resp.Body)
+	err = decoder.Decode(&ret)
 	if err != nil {
-		fmt.Println("ERROR: ", err)
-		return
-	}
-
-	err = json.Unmarshal(respBody, &ret)
-	if err != nil {
-		fmt.Println("ERROR: ", err)
+		fmt.Println("Error reading response body: ", err)
 		return
 	}
 

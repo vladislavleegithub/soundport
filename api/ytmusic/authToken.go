@@ -12,12 +12,13 @@ import (
 )
 
 func getAuthToken(cookie string) (string, error) {
-	// Check config for auth
+	// Check config for auth token
 	authToken := viper.GetString("yt-auth-token")
 	if len(authToken) > 0 {
 		return authToken, nil
 	}
 
+	// If config doesnt have auth token
 	spsid, err := getSpsidFromCookie(cookie)
 	if err != nil {
 		return "", err
@@ -25,7 +26,7 @@ func getAuthToken(cookie string) (string, error) {
 
 	authToken = constructAuthToken(spsid)
 
-	// Add authHeader to config
+	// Add auth token to config
 	viper.Set("yt-auth-token", authToken)
 	err = viper.WriteConfig()
 	if err != nil {
