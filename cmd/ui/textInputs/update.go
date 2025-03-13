@@ -46,7 +46,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				viper.Set("spfy-secret", clientSecret)
 				err := viper.WriteConfig()
 				if err != nil {
-					fmt.Println("Error writing to config")
+					glbLogger.Println("Error writing to config")
 					return m, tea.Quit
 				}
 				return m, tea.Quit

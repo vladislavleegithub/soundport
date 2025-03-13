@@ -62,7 +62,7 @@ func constructHeader(req *http.Request) error {
 
 	visitorId, err := GetVisitorId()
 	if err != nil {
-		fmt.Println("error getting visitor id: ", err)
+		glbLogger.Println("error getting visitor id: ", err)
 		return err
 	}
 
@@ -74,7 +74,7 @@ func constructHeader(req *http.Request) error {
 
 	authHeader, err := getAuthToken(cookie)
 	if err != nil {
-		fmt.Println("error getting auth header: ", err)
+		glbLogger.Println("error getting auth header: ", err)
 		return err
 	}
 

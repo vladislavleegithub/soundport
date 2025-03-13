@@ -3,6 +3,8 @@ package ytmusic
 import (
 	"net/http"
 	"time"
+
+	"github.com/Samarthbhat52/soundport/logger"
 )
 
 const (
@@ -17,6 +19,8 @@ const (
 	PRIVATE StatusType = "PRIVATE"
 	PUBLIC  StatusType = "PUBLIC"
 )
+
+var glbLogger = logger.GetInstance()
 
 type SearchRequestBody struct {
 	Ctx    *Context `json:"context"`

@@ -12,7 +12,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var green = lipgloss.NewStyle().Foreground(lipgloss.Color("84"))
+var (
+	accent = lipgloss.NewStyle().Foreground(lipgloss.Color("163"))
+	green  = lipgloss.NewStyle().Foreground(lipgloss.Color("84"))
+	red    = lipgloss.NewStyle().Foreground(lipgloss.Color("161"))
+)
 
 func init() {
 	rootCmd.AddCommand(spotifyCmd)
@@ -56,7 +60,7 @@ var spotifyLoginCmd = &cobra.Command{
 
 		creds := spotify.NewCredentials()
 
-		message.WriteString("Click on " + green.Render("Accept") + " in the browser popup\n")
+		message.WriteString("Click on " + accent.Render("Accept") + " in the browser popup\n")
 		fmt.Println(message.String())
 
 		ch := make(chan int)
@@ -67,6 +71,9 @@ var spotifyLoginCmd = &cobra.Command{
 		val := <-ch
 		if val == 0 {
 			status.WriteString(green.Render("Login successful\n"))
+			fmt.Println(status.String())
+		} else {
+			status.WriteString(red.Render("Login failed\n"))
 			fmt.Println(status.String())
 		}
 		fmt.Println("Browser window/tab can be closed.")

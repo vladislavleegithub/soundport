@@ -9,22 +9,25 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/Samarthbhat52/soundport/logger"
 	"github.com/spf13/viper"
 )
+
+var glbLogger = logger.GetInstance()
 
 func (c *Credentials) StartHttpServer(ch chan int) error {
 	handleCallback := func(w http.ResponseWriter, r *http.Request) {
 		// Unpack query params
 		params, err := url.ParseQuery(r.URL.RawQuery)
 		if err != nil {
-			fmt.Println("Error decoding query params: ", err.Error())
+			glbLogger.Println("Error decoding query params: ", err.Error())
 			ch <- -1
 			return
 		}
 
 		error := params.Get("error")
 		if error != "" {
-			fmt.Println("Permission denied: ", error)
+			glbLogger.Println("Permission denied: ", error)
 			ch <- -1
 			return
 		}
@@ -32,13 +35,13 @@ func (c *Credentials) StartHttpServer(ch chan int) error {
 		// Check state sent from spotify
 		state := params.Get("state")
 		if state != c.State {
-			fmt.Println("State mismatch error")
+			glbLogger.Println("State mismatch error")
 			return
 		}
 
 		authCode := params.Get("code")
 		if authCode == "" {
-			fmt.Println("No auth token: ", authCode)
+			glbLogger.Println("No auth token: ", authCode)
 			ch <- -1
 			return
 		}
@@ -46,7 +49,7 @@ func (c *Credentials) StartHttpServer(ch chan int) error {
 		// Get access_token and refresh_token
 		_, err = c.getAccessToken(authCode)
 		if err != nil {
-			fmt.Println("Error getting access token: ", err)
+			glbLogger.Println("Error getting access token: ", err)
 		}
 		ch <- 0
 	}

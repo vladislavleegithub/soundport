@@ -3,6 +3,7 @@ package textinputs
 import (
 	"fmt"
 
+	"github.com/Samarthbhat52/soundport/logger"
 	"github.com/charmbracelet/bubbles/cursor"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -20,6 +21,8 @@ var (
 	focusedButton = focusedStyle.Render("[ Submit ]")
 	blurredButton = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
 )
+
+var glbLogger = logger.GetInstance()
 
 type model struct {
 	focusIndex int

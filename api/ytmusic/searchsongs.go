@@ -55,13 +55,13 @@ func getSongInfo(client http.Client, reqBody []byte, wg *sync.WaitGroup, ch chan
 
 	req, err := http.NewRequest("POST", YTMUSIC_SEARCH, bytes.NewBuffer(reqBody))
 	if err != nil {
-		fmt.Println("Error constructing request: ", err)
+		glbLogger.Println("Error constructing request: ", err)
 		return
 	}
 
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Error sending request: ", err)
+		glbLogger.Println("Error sending request: ", err)
 		return
 	}
 	defer resp.Body.Close()
@@ -71,7 +71,7 @@ func getSongInfo(client http.Client, reqBody []byte, wg *sync.WaitGroup, ch chan
 	decoder := json.NewDecoder(resp.Body)
 	err = decoder.Decode(&ret)
 	if err != nil {
-		fmt.Println("Error reading response body: ", err)
+		glbLogger.Println("Error reading response body: ", err)
 		return
 	}
 
