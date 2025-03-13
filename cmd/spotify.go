@@ -2,15 +2,17 @@ package cmd
 
 import (
 	"fmt"
-	"os"
+	"log"
 
-	"github.com/Samarthbhat52/soundport/cmd/ui/listcommon.go"
+	"github.com/Samarthbhat52/soundport/api/spotify"
+	textinputs "github.com/Samarthbhat52/soundport/cmd/ui/textInputs"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 )
 
 func init() {
 	rootCmd.AddCommand(spotifyCmd)
+	spotifyCmd.AddCommand(spotifyLoginCmd)
 }
 
 type listOptions struct {
@@ -18,21 +20,42 @@ type listOptions struct {
 }
 
 var spotifyCmd = &cobra.Command{
-	Use:   "port",
+	Use:   "spotify",
 	Short: "",
 	Long:  "",
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		listOfStuff := []string{
-			"Some",
-			"Options",
-			"Let's flesh it out later",
+		p := tea.NewProgram(textinputs.InitialModel())
+		_, err := p.Run()
+		if err != nil {
+			log.Fatal(err)
 		}
+	},
+}
 
-		p := tea.NewProgram(listcommon.InitialModel(listOfStuff))
-		if _, err := p.Run(); err != nil {
-			fmt.Printf("Alas there's been an error: %v\n", err)
-			os.Exit(1)
-		}
+var spotifyLoginCmd = &cobra.Command{
+	Use:   "login",
+	Short: "",
+	Long:  "",
+	Args:  cobra.NoArgs,
+	Run: func(cmd *cobra.Command, args []string) {
+		// post it onto screen.
+		// Create a channel, to accept the status code.
+		// Start a server.
+		// if status is err, immediately add it to the channel and shut down server
+		// if status is ok, add access and refresh tokens to config file.
+		// shut down server
+
+		creds := spotify.NewCredentials()
+		authUrl := creds.GetAuthURL()
+		fmt.Printf(
+			"Please click the link below to sign in:\n\n%s\n\nclick accept and close the browser once done.\n",
+			authUrl,
+		)
+
+		ch := make(chan string)
+		go creds.StartHttpServer(ch)
+
+		<-ch
 	},
 }

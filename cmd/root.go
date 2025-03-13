@@ -37,6 +37,10 @@ func init() {
 func initConfig() {
 	viper.SetDefault("yt-Cookie", "")
 	viper.SetDefault("yt-auth-token", "")
+	viper.SetDefault("spfy-id", "")
+	viper.SetDefault("spfy-secret", "")
+	viper.SetDefault("spfy-access", "")
+	viper.SetDefault("spfy-refresh", "")
 
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
