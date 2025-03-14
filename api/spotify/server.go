@@ -22,34 +22,32 @@ func (c *Credentials) StartHttpServer(ch chan int) error {
 		if err != nil {
 			glbLogger.Println("Error decoding query params: ", err.Error())
 			ch <- -1
-			return
 		}
 
 		error := params.Get("error")
 		if error != "" {
 			glbLogger.Println("Permission denied: ", error)
 			ch <- -1
-			return
 		}
 
 		// Check state sent from spotify
 		state := params.Get("state")
 		if state != c.State {
 			glbLogger.Println("State mismatch error")
-			return
+			ch <- -1
 		}
 
 		authCode := params.Get("code")
 		if authCode == "" {
 			glbLogger.Println("No auth token: ", authCode)
 			ch <- -1
-			return
 		}
 
 		// Get access_token and refresh_token
 		_, err = c.getAccessToken(authCode)
 		if err != nil {
 			glbLogger.Println("Error getting access token: ", err)
+			ch <- -1
 		}
 		ch <- 0
 	}
