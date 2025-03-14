@@ -2,12 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/Samarthbhat52/soundport/api/spotify"
-	textinputs "github.com/Samarthbhat52/soundport/cmd/ui/textInputs"
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )
@@ -20,7 +17,6 @@ var (
 
 func init() {
 	rootCmd.AddCommand(spotifyCmd)
-	spotifyCmd.AddCommand(spotifyInitCmd)
 	spotifyCmd.AddCommand(spotifyLoginCmd)
 }
 
@@ -33,20 +29,6 @@ var spotifyCmd = &cobra.Command{
 	Short: "",
 	Long:  "",
 	Args:  cobra.NoArgs,
-}
-
-var spotifyInitCmd = &cobra.Command{
-	Use:   "init",
-	Short: "",
-	Long:  "",
-	Args:  cobra.NoArgs,
-	Run: func(cmd *cobra.Command, args []string) {
-		p := tea.NewProgram(textinputs.InitialModel())
-		_, err := p.Run()
-		if err != nil {
-			log.Fatal(err)
-		}
-	},
 }
 
 var spotifyLoginCmd = &cobra.Command{

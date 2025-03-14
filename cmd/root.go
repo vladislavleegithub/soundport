@@ -5,11 +5,14 @@ import (
 	"os"
 	"path"
 
+	"github.com/Samarthbhat52/soundport/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 const CONFIG_FILE_NAME = ".soundport.json"
+
+var glbLogger = logger.GetInstance()
 
 var (
 	cfgFile = ""
