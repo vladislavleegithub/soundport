@@ -2,20 +2,18 @@ package spotify
 
 import (
 	"encoding/base64"
-	"encoding/json"
-	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
 
 	"github.com/Samarthbhat52/soundport/logger"
-	"github.com/spf13/viper"
 )
 
 var glbLogger = logger.GetInstance()
 
-func (c *Credentials) StartHttpServer(ch chan int) error {
+func (c *credentials) StartHttpServer(ch chan int, state string) error {
 	handleCallback := func(w http.ResponseWriter, r *http.Request) {
 		// Unpack query params
 		params, err := url.ParseQuery(r.URL.RawQuery)
@@ -31,8 +29,8 @@ func (c *Credentials) StartHttpServer(ch chan int) error {
 		}
 
 		// Check state sent from spotify
-		state := params.Get("state")
-		if state != c.State {
+		retState := params.Get("state")
+		if retState != state {
 			glbLogger.Println("State mismatch error")
 			ch <- -1
 		}
@@ -58,13 +56,13 @@ func (c *Credentials) StartHttpServer(ch chan int) error {
 	return http.ListenAndServe(server_url, nil)
 }
 
-func (c *Credentials) getAccessToken(authCode string) (string, error) {
+func (c *credentials) getAccessToken(authCode string) (string, error) {
 	body := url.Values{}
 	body.Add("code", authCode)
 	body.Add("redirect_uri", "http://"+redirect_url)
 	body.Add("grant_type", "authorization_code")
 
-	req, err := http.NewRequest("POST", access_tok_url, strings.NewReader(body.Encode()))
+	req, err := http.NewRequest("POST", token_url, strings.NewReader(body.Encode()))
 	if err != nil {
 		return "", err
 	}
@@ -73,41 +71,38 @@ func (c *Credentials) getAccessToken(authCode string) (string, error) {
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Authorization", authHeader)
 
-	client := http.Client{}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return resp.Status, errors.New("error fetching access token")
-	}
-
-	authResponse := Auth{}
-	decoder := json.NewDecoder(resp.Body)
-	err = decoder.Decode(&authResponse)
+	err = handleAuthResponse(req)
 	if err != nil {
 		return "", err
 	}
 
-	// Set access and refresh_token to viper config
-	viper.Set("spfy-access", authResponse.AccessToken)
-	viper.Set("spfy-refresh", authResponse.RefreshToken)
-	err = viper.WriteConfig()
-	if err != nil {
-		return "", err
-	}
-
-	return resp.Status, nil
+	return "processed", nil
 }
 
-func (c *Credentials) getAuthorizationHeader() string {
-	data := fmt.Appendf([]byte{}, "%s:%s", c.ClientId, c.ClientSecret)
+func (c *credentials) getAuthorizationHeader() string {
+	data := fmt.Appendf([]byte{}, "%s:%s", c.clientId, c.clientSecret)
 	dst := make([]byte, base64.StdEncoding.EncodedLen(len(data)))
 
 	base64.StdEncoding.Encode(dst, data)
 
 	return fmt.Sprintf("Basic %s", string(dst))
+}
+
+func (c *credentials) GetAuthURL(state string) string {
+	u, err := url.Parse(auth_url)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	q := u.Query()
+	q.Set("response_type", "code")
+	q.Set("client_id", c.clientId)
+	q.Set("scope", scope)
+	q.Set("redirect_uri", "http://"+redirect_url)
+	q.Set("state", state)
+
+	// Encode the Query
+	u.RawQuery = q.Encode()
+
+	return u.String()
 }

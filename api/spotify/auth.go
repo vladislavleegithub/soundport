@@ -1,9 +1,11 @@
 package spotify
 
 import (
-	"log"
+	"encoding/json"
+	"errors"
 	"math/rand"
-	"net/url"
+	"net/http"
+	"time"
 
 	"github.com/pkg/browser"
 	"github.com/spf13/viper"
@@ -17,56 +19,68 @@ const (
 )
 
 const (
-	base_auth_url  string = "https://accounts.spotify.com"
-	auth_url       string = base_auth_url + "/authorize"
-	access_tok_url string = base_auth_url + "/api/token"
-	scope          string = "playlist-read-private playlist-read-collaborative"
-	letterBytes    string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	// Auth urls
+	base_auth_url string = "https://accounts.spotify.com"
+	auth_url      string = base_auth_url + "/authorize"
+	token_url     string = base_auth_url + "/api/token"
+	scope         string = "playlist-read-private playlist-read-collaborative"
+
+	// Other urls
+	base_api_url string = "https://api.spotify.com/v1"
+	playlist_url string = base_api_url + "/me/playlists"
+
+	// used to generate secret key
+	letterBytes string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
 
-type Auth struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-	TokenType    string `json:"token_type"`
-	Scope        string `json:"scope"`
-	ExpiresIn    int    `json:"expires_in"`
+type authResponse struct {
+	AccessToken  string        `json:"access_token"`
+	RefreshToken string        `json:"refresh_token"`
+	TokenType    string        `json:"token_type"`
+	Scope        string        `json:"scope"`
+	ExpiresIn    time.Duration `json:"expires_in"`
 }
 
-type Credentials struct {
-	ClientId     string
-	ClientSecret string
-	State        string
+type credentials struct {
+	clientId     string
+	clientSecret string
 }
 
-func NewCredentials() *Credentials {
+// Used for making authenticated queries to spotify api
+type auth struct {
+	accessToken  string
+	refreshToken string
+	expiresAt    time.Time
+	creds        *credentials
+}
+
+func NewCredentials() *credentials {
 	clientId := viper.GetString("spfy-id")
 	clientSecret := viper.GetString("spfy-secret")
-	state := RandStringBytes(16)
 
-	return &Credentials{
-		ClientId:     clientId,
-		ClientSecret: clientSecret,
-		State:        state,
+	return &credentials{
+		clientId:     clientId,
+		clientSecret: clientSecret,
 	}
 }
 
-func (c *Credentials) GetAuthURL() string {
-	u, err := url.Parse(auth_url)
-	if err != nil {
-		log.Fatal(err)
+func NewAuth() (*auth, error) {
+	accessToken := viper.GetString("spfy-access")
+	refreshToken := viper.GetString("spfy-refresh")
+	expiresAt := viper.GetTime("spfy-expires-at")
+
+	creds := NewCredentials()
+	if accessToken == "" || refreshToken == "" || expiresAt.IsZero() {
+		// TODO: Improve error message
+		return nil, errors.New("not logged in")
 	}
 
-	q := u.Query()
-	q.Set("response_type", "code")
-	q.Set("client_id", c.ClientId)
-	q.Set("scope", scope)
-	q.Set("redirect_uri", "http://"+redirect_url)
-	q.Set("state", c.State)
-
-	// Encode the Query
-	u.RawQuery = q.Encode()
-
-	return u.String()
+	return &auth{
+		accessToken:  accessToken,
+		refreshToken: refreshToken,
+		expiresAt:    expiresAt,
+		creds:        creds,
+	}, nil
 }
 
 func RandStringBytes(n int) string {
@@ -77,8 +91,53 @@ func RandStringBytes(n int) string {
 	return string(b)
 }
 
-func (c *Credentials) OpenBrowser(url string) {
+func OpenBrowser(url string) {
 	browser.Stdout = nil
 	browser.Stderr = nil
 	browser.OpenURL(url)
+}
+
+func updateSpotifyConfig(resp *authResponse) error {
+	// Set access and refresh_token to viper config
+	viper.Set("spfy-access", resp.AccessToken)
+	viper.Set("spfy-refresh", resp.RefreshToken)
+
+	// Add token expiry
+	expiresAt := time.Now().Add(resp.ExpiresIn * time.Second)
+	viper.Set("spfy-expires-at", expiresAt)
+
+	err := viper.WriteConfig()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func handleAuthResponse(req *http.Request) error {
+	client := http.Client{}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return errors.New("error processing auth request")
+	}
+
+	authResponse := authResponse{}
+	decoder := json.NewDecoder(resp.Body)
+	err = decoder.Decode(&authResponse)
+	if err != nil {
+		return err
+	}
+
+	err = updateSpotifyConfig(&authResponse)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

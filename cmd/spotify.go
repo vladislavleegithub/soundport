@@ -3,10 +3,12 @@ package cmd
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/Samarthbhat52/soundport/api/spotify"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var (
@@ -18,6 +20,7 @@ var (
 func init() {
 	rootCmd.AddCommand(spotifyCmd)
 	spotifyCmd.AddCommand(spotifyLoginCmd)
+	spotifyCmd.AddCommand(spotifyTestCmd)
 }
 
 type listOptions struct {
@@ -46,9 +49,11 @@ var spotifyLoginCmd = &cobra.Command{
 		fmt.Println(message.String())
 
 		ch := make(chan int)
-		url := creds.GetAuthURL()
-		go creds.StartHttpServer(ch)
-		go creds.OpenBrowser(url)
+		state := spotify.RandStringBytes(16)
+
+		url := creds.GetAuthURL(state)
+		go creds.StartHttpServer(ch, state)
+		go spotify.OpenBrowser(url)
 
 		val := <-ch
 		if val == 0 {
@@ -59,5 +64,23 @@ var spotifyLoginCmd = &cobra.Command{
 			fmt.Println(status.String())
 		}
 		fmt.Println("Browser window/tab can be closed.")
+	},
+}
+
+var spotifyTestCmd = &cobra.Command{
+	Use: "test",
+	Run: func(cmd *cobra.Command, args []string) {
+		expIn := viper.GetTime("spfy-expires-at")
+		if expIn.IsZero() {
+			fmt.Println(expIn)
+			fmt.Println("ZERO VALUE")
+
+		}
+
+		if time.Now().After(expIn) {
+			fmt.Println("AFTER")
+		} else {
+			fmt.Println("BEFORE")
+		}
 	},
 }

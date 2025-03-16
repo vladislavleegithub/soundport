@@ -3,7 +3,6 @@ package ytmusic
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"sync"
 )
