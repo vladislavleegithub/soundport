@@ -2,13 +2,13 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"strings"
-	"time"
 
 	"github.com/Samarthbhat52/soundport/api/spotify"
+	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var (
@@ -20,7 +20,7 @@ var (
 func init() {
 	rootCmd.AddCommand(spotifyCmd)
 	spotifyCmd.AddCommand(spotifyLoginCmd)
-	spotifyCmd.AddCommand(spotifyTestCmd)
+	spotifyCmd.AddCommand(spotifyPlaylistsCmd)
 }
 
 type listOptions struct {
@@ -67,20 +67,25 @@ var spotifyLoginCmd = &cobra.Command{
 	},
 }
 
-var spotifyTestCmd = &cobra.Command{
-	Use: "test",
+var spotifyPlaylistsCmd = &cobra.Command{
+	Use: "get",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		a, err := spotify.NewAuth()
+		if err != nil {
+			log.Fatal("Please login to continue")
+		}
+		err = a.RefreshSession()
+		if err != nil {
+			log.Fatal("error processing auth request")
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
-		expIn := viper.GetTime("spfy-expires-at")
-		if expIn.IsZero() {
-			fmt.Println(expIn)
-			fmt.Println("ZERO VALUE")
-
+		a, _ := spotify.NewAuth()
+		resp, err := a.GetPlaylists()
+		if err != nil {
+			log.Fatal(err)
 		}
 
-		if time.Now().After(expIn) {
-			fmt.Println("AFTER")
-		} else {
-			fmt.Println("BEFORE")
-		}
+		l := list.New(resp.ItemPlaylists, list.NewDefaultDelegate(), 0, 0)
 	},
 }

@@ -10,51 +10,56 @@ import (
 	"time"
 )
 
-type spfyPlaylists struct {
-	Total     int `json:"total"`
-	Playlists []struct {
-		Desc   string `json:"description"`
-		Link   string `json:"href"`
-		Id     string `json:"id"`
-		Name   string `json:"name"`
-		Tracks struct {
-			Link  string `json:"href"`
-			Total int    `json:"total"`
-		} `json:"tracks"`
-	} `json:"items"`
+type Playlists struct {
+	Desc   string `json:"description"`
+	Link   string `json:"href"`
+	Id     string `json:"id"`
+	Name   string `json:"name"`
+	Tracks struct {
+		Link  string `json:"href"`
+		Total int    `json:"total"`
+	} `json:"tracks"`
 }
 
-func (a *auth) GetPlaylists() (spfyPlaylists, error) {
+// Make it compatable with bubbletea
+func (p Playlists) FilterValue() string { return p.Name }
+
+type spfyPlaylists struct {
+	Total         int         `json:"total"`
+	ItemPlaylists []Playlists `json:"items"`
+}
+
+func (a *auth) GetPlaylists() (*spfyPlaylists, error) {
 	// setup auth herader
 	authHeader := fmt.Sprintf("Bearer %s", a.accessToken)
 
 	// Prep request
 	req, err := http.NewRequest("GET", playlist_url, nil)
 	if err != nil {
-		return spfyPlaylists{}, err
+		return nil, err
 	}
 	req.Header.Add("Authorization", authHeader)
 
 	client := http.DefaultClient
 	resp, err := client.Do(req)
 	if err != nil {
-		return spfyPlaylists{}, err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		fmt.Println("ERROR: ", resp.Status)
-		return spfyPlaylists{}, errors.New("unsuccessful request")
+		return nil, errors.New("unsuccessful request")
 	}
 
 	playlists := spfyPlaylists{}
 	decoder := json.NewDecoder(resp.Body)
 	err = decoder.Decode(&playlists)
 	if err != nil {
-		return spfyPlaylists{}, err
+		return nil, err
 	}
 
-	return playlists, nil
+	return &playlists, nil
 }
 
 func (a *auth) RefreshSession() error {
