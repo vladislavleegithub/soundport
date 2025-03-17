@@ -1,36 +1,15 @@
 package spotify
 
 import (
-	"encoding/json"
-	"errors"
-	"math/rand"
+	"encoding/base64"
+	"fmt"
+	"log"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
-	"github.com/pkg/browser"
 	"github.com/spf13/viper"
-)
-
-const (
-	base_url     string = "127.0.0.1"
-	port         string = "4214"
-	server_url   string = base_url + ":" + port
-	redirect_url string = server_url + "/callback"
-)
-
-const (
-	// Auth urls
-	base_auth_url string = "https://accounts.spotify.com"
-	auth_url      string = base_auth_url + "/authorize"
-	token_url     string = base_auth_url + "/api/token"
-	scope         string = "playlist-read-private playlist-read-collaborative"
-
-	// Other urls
-	base_api_url string = "https://api.spotify.com/v1"
-	playlist_url string = base_api_url + "/me/playlists"
-
-	// used to generate secret key
-	letterBytes string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
 
 type authResponse struct {
@@ -70,10 +49,6 @@ func NewAuth() (*auth, error) {
 	expiresAt := viper.GetTime("spfy-expires-at")
 
 	creds := NewCredentials()
-	if accessToken == "" || refreshToken == "" || expiresAt.IsZero() {
-		// TODO: Improve error message
-		return nil, errors.New("not logged in")
-	}
 
 	return &auth{
 		accessToken:  accessToken,
@@ -83,30 +58,40 @@ func NewAuth() (*auth, error) {
 	}, nil
 }
 
-func RandStringBytes(n int) string {
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+func getAccessToken(authCode string) (string, error) {
+	body := url.Values{}
+	body.Add("code", authCode)
+	body.Add("redirect_uri", "http://"+redirect_url)
+	body.Add("grant_type", "authorization_code")
+
+	req, err := http.NewRequest("POST", token_url, strings.NewReader(body.Encode()))
+	if err != nil {
+		return "", err
 	}
-	return string(b)
+
+	err = handleAuthResponse(req)
+	if err != nil {
+		return "", err
+	}
+
+	return "processed", nil
 }
 
-func OpenBrowser(url string) {
-	browser.Stdout = nil
-	browser.Stderr = nil
-	browser.OpenURL(url)
-}
+func RefreshSession() error {
+	fmt.Println("REFRESH SESSION CALLED")
 
-func updateSpotifyConfig(resp *authResponse) error {
-	// Set access and refresh_token to viper config
-	viper.Set("spfy-access", resp.AccessToken)
-	viper.Set("spfy-refresh", resp.RefreshToken)
+	// Set up request body
+	body := url.Values{}
+	body.Add("grant_type", "refresh_token")
+	body.Add("refresh_token", viper.GetString("spfy-refresh"))
+	encodedBody := strings.NewReader(body.Encode())
 
-	// Add token expiry
-	expiresAt := time.Now().Add(resp.ExpiresIn * time.Second)
-	viper.Set("spfy-expires-at", expiresAt)
+	req, err := http.NewRequest("POST", token_url, encodedBody)
+	if err != nil {
+		return err
+	}
 
-	err := viper.WriteConfig()
+	err = handleAuthResponse(req)
 	if err != nil {
 		return err
 	}
@@ -114,30 +99,34 @@ func updateSpotifyConfig(resp *authResponse) error {
 	return nil
 }
 
-func handleAuthResponse(req *http.Request) error {
-	client := http.Client{}
+func getAuthorizationHeader() string {
+	clientId := viper.GetString("spfy-id")
+	clientSecret := viper.GetString("spfy-secret")
 
-	resp, err := client.Do(req)
+	data := fmt.Appendf([]byte{}, "%s:%s", clientId, clientSecret)
+
+	dst := make([]byte, base64.StdEncoding.EncodedLen(len(data)))
+
+	base64.StdEncoding.Encode(dst, data)
+
+	return fmt.Sprintf("Basic %s", string(dst))
+}
+
+func (c *credentials) GetAuthURL(state string) string {
+	u, err := url.Parse(auth_url)
 	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return errors.New("error processing auth request")
+		log.Fatal(err)
 	}
 
-	authResponse := authResponse{}
-	decoder := json.NewDecoder(resp.Body)
-	err = decoder.Decode(&authResponse)
-	if err != nil {
-		return err
-	}
+	q := u.Query()
+	q.Set("response_type", "code")
+	q.Set("client_id", c.clientId)
+	q.Set("scope", scope)
+	q.Set("redirect_uri", "http://"+redirect_url)
+	q.Set("state", state)
 
-	err = updateSpotifyConfig(&authResponse)
-	if err != nil {
-		return err
-	}
+	// Encode the Query
+	u.RawQuery = q.Encode()
 
-	return nil
+	return u.String()
 }

@@ -5,9 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
-	"strings"
-	"time"
+
+	"github.com/charmbracelet/bubbles/list"
 )
 
 type Playlists struct {
@@ -23,10 +22,22 @@ type Playlists struct {
 
 // Make it compatable with bubbletea
 func (p Playlists) FilterValue() string { return p.Name }
+func (p Playlists) Title() string       { return p.Name }
+func (p Playlists) Description() string { return p.Desc }
 
 type spfyPlaylists struct {
 	Total         int         `json:"total"`
 	ItemPlaylists []Playlists `json:"items"`
+}
+
+func (s *spfyPlaylists) GetPlaylistItems() []list.Item {
+	items := make([]list.Item, len(s.ItemPlaylists))
+
+	for i := range len(s.ItemPlaylists) {
+		items[i] = s.ItemPlaylists[i]
+	}
+
+	return items
 }
 
 func (a *auth) GetPlaylists() (*spfyPlaylists, error) {
@@ -60,35 +71,4 @@ func (a *auth) GetPlaylists() (*spfyPlaylists, error) {
 	}
 
 	return &playlists, nil
-}
-
-func (a *auth) RefreshSession() error {
-	// If auth token is close to expiry, we still refresh it.
-	checkTime := a.expiresAt.Add(-5 * time.Minute)
-
-	if time.Now().Before(checkTime) {
-		return nil
-	}
-
-	// Set up request body
-	body := url.Values{}
-	body.Add("grant_type", "refresh_token")
-	body.Add("refresh_token", a.refreshToken)
-	encodedBody := strings.NewReader(body.Encode())
-
-	req, err := http.NewRequest("POST", token_url, encodedBody)
-	if err != nil {
-		return err
-	}
-
-	authHeader := a.creds.getAuthorizationHeader()
-	req.Header.Add("Authorization", authHeader)
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-
-	err = handleAuthResponse(req)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

@@ -3,12 +3,17 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"os"
 	"strings"
+	"time"
 
 	"github.com/Samarthbhat52/soundport/api/spotify"
+	"github.com/Samarthbhat52/soundport/cmd/ui"
 	"github.com/charmbracelet/bubbles/list"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var (
@@ -35,10 +40,11 @@ var spotifyCmd = &cobra.Command{
 }
 
 var spotifyLoginCmd = &cobra.Command{
-	Use:   "login",
-	Short: "",
-	Long:  "",
-	Args:  cobra.NoArgs,
+	Use:    "login",
+	Short:  "",
+	Long:   "",
+	Args:   cobra.NoArgs,
+	PreRun: ensureInit,
 	Run: func(cmd *cobra.Command, args []string) {
 		var message strings.Builder
 		var status strings.Builder
@@ -68,17 +74,8 @@ var spotifyLoginCmd = &cobra.Command{
 }
 
 var spotifyPlaylistsCmd = &cobra.Command{
-	Use: "get",
-	PreRun: func(cmd *cobra.Command, args []string) {
-		a, err := spotify.NewAuth()
-		if err != nil {
-			log.Fatal("Please login to continue")
-		}
-		err = a.RefreshSession()
-		if err != nil {
-			log.Fatal("error processing auth request")
-		}
-	},
+	Use:    "get",
+	PreRun: ensureLogin,
 	Run: func(cmd *cobra.Command, args []string) {
 		a, _ := spotify.NewAuth()
 		resp, err := a.GetPlaylists()
@@ -86,6 +83,54 @@ var spotifyPlaylistsCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		l := list.New(resp.ItemPlaylists, list.NewDefaultDelegate(), 0, 0)
+		playlistItems := resp.GetPlaylistItems()
+
+		l := list.New(playlistItems, list.NewDefaultDelegate(), 0, 0)
+		l.Title = "Select a playlist"
+		m := ui.InitModel(l)
+
+		p := tea.NewProgram(m, tea.WithAltScreen())
+
+		if _, err := p.Run(); err != nil {
+			fmt.Println("Error running program: ", err)
+			os.Exit(1)
+		}
 	},
+}
+
+// FIX : DECOUPLE SPOTIFY AND YT SETUP
+func ensureInit(cmd *cobra.Command, args []string) {
+	spfyId := viper.GetString("spfy-id")
+	spfySecret := viper.GetString("spfy-secret")
+	ytCookie := viper.GetString("yt-cookie")
+
+	if spfyId == "" || spfySecret == "" || ytCookie == "" {
+		fmt.Println("credentials not setup")
+		fmt.Println("Please run `soundport setup` to initialize")
+		os.Exit(1)
+	}
+}
+
+func ensureLogin(cmd *cobra.Command, args []string) {
+	spfyAccess := viper.GetString("spfy-access")
+	spfyRefresh := viper.GetString("spfy-refresh")
+
+	if spfyAccess == "" || spfyRefresh == "" {
+		fmt.Println("Not logged into spotify")
+		fmt.Println("Please run `soundport spotify login`")
+		os.Exit(1)
+	}
+
+	expiresAt := viper.GetTime("spfy-expires-at")
+
+	// Check if auth token is close to expiry
+	checkTime := expiresAt.Add(-10 * time.Minute)
+	if time.Now().Before(checkTime) {
+		return
+	}
+
+	err := spotify.RefreshSession()
+	if err != nil {
+		log.Fatal("error refreshing session")
+	}
 }

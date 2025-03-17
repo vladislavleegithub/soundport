@@ -38,15 +38,6 @@ func init() {
 }
 
 func initConfig() {
-	// TODO: This may not be strictly necessary.
-	viper.SetDefault("yt-Cookie", "")
-	viper.SetDefault("yt-auth-token", "")
-	viper.SetDefault("spfy-id", "")
-	viper.SetDefault("spfy-secret", "")
-	viper.SetDefault("spfy-access", "")
-	viper.SetDefault("spfy-refresh", "")
-	viper.SetDefault("spfy-expires-at", "")
-
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
 		err := viper.ReadInConfig()

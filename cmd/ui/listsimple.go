@@ -16,8 +16,10 @@ type model struct {
 	quitting bool
 }
 
-func InitModel() *model {
-	return &model{}
+func InitModel(list list.Model) *model {
+	return &model{
+		list: list,
+	}
 }
 
 func (m model) Init() tea.Cmd {

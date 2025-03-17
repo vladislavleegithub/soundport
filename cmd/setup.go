@@ -40,6 +40,7 @@ var form = huh.NewForm(
 	).Title("YT Music setup"),
 )
 
+// FIX : DECOUPLE SPOTIFY AND YT SETUP
 var setupCmd = &cobra.Command{
 	Use:   "setup",
 	Short: "",
