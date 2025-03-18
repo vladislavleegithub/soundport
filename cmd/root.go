@@ -30,6 +30,7 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
+	rootCmd.AddCommand(portCmd)
 	rootCmd.AddCommand(spotify.Cmd)
 	rootCmd.AddCommand(ytmusic.Cmd)
 }

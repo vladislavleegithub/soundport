@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-type playlistTracks struct {
+type PlaylistTracks struct {
 	Total  int `json:"total"`
 	Tracks []struct {
 		Track struct {
@@ -19,14 +19,14 @@ type playlistTracks struct {
 	} `json:"items"`
 }
 
-func (a *auth) GetTracks(tracksUrl string) (playlistTracks, error) {
+func (a *auth) GetTracks(tracksUrl string) (PlaylistTracks, error) {
 	// setup auth herader
 	authHeader := fmt.Sprintf("Bearer %s", a.accessToken)
 
 	// prep request
 	req, err := http.NewRequest("GET", tracksUrl, nil)
 	if err != nil {
-		return playlistTracks{}, nil
+		return PlaylistTracks{}, nil
 	}
 	req.Header.Add("Authorization", authHeader)
 
@@ -34,20 +34,20 @@ func (a *auth) GetTracks(tracksUrl string) (playlistTracks, error) {
 	client := http.DefaultClient
 	resp, err := client.Do(req)
 	if err != nil {
-		return playlistTracks{}, err
+		return PlaylistTracks{}, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return playlistTracks{}, errors.New("unable to fetch songs")
+		return PlaylistTracks{}, errors.New("unable to fetch songs")
 	}
 
 	// decode response
-	tracks := playlistTracks{}
+	tracks := PlaylistTracks{}
 	decoder := json.NewDecoder(resp.Body)
 	err = decoder.Decode(&tracks)
 	if err != nil {
-		return playlistTracks{}, err
+		return PlaylistTracks{}, err
 	}
 
 	return tracks, nil
