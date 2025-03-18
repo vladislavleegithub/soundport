@@ -7,7 +7,7 @@ import (
 	"sync"
 )
 
-func SearchSongYT(songName []string) ([]string, error) {
+func SearchSong(songName []string) ([]string, error) {
 	// Init context
 	ctx := initContext()
 	client := &http.Client{}

@@ -3,35 +3,18 @@ package ytmusic
 import (
 	"crypto/sha1"
 	"encoding/hex"
-	"errors"
 	"net/http"
 	"strconv"
 	"time"
-
-	"github.com/spf13/viper"
 )
 
-func getAuthToken(cookie string) (string, error) {
-	// Check config for auth token
-	authToken := viper.GetString("yt-auth-token")
-	if len(authToken) > 0 {
-		return authToken, nil
-	}
-
+func GetAuthToken(cookie string) (string, error) {
 	// If config doesnt have auth token
 	spsid, err := getSpsidFromCookie(cookie)
 	if err != nil {
 		return "", err
 	}
-
-	authToken = constructAuthToken(spsid)
-
-	// Add auth token to config
-	viper.Set("yt-auth-token", authToken)
-	err = viper.WriteConfig()
-	if err != nil {
-		return "", errors.New("unable to write auth header to config: " + err.Error())
-	}
+	authToken := constructAuthToken(spsid)
 
 	return authToken, nil
 }

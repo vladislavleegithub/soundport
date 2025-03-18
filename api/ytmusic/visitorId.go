@@ -8,7 +8,7 @@ import (
 	"regexp"
 )
 
-func GetVisitorId() (string, error) {
+func getVisitorId() (string, error) {
 	// Get request
 	response, err := sendGetRequest()
 	if err != nil {

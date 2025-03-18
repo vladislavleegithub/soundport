@@ -23,6 +23,7 @@ type authResponse struct {
 type credentials struct {
 	clientId     string
 	clientSecret string
+	state        string
 }
 
 // Used for making authenticated queries to spotify api
@@ -30,16 +31,17 @@ type auth struct {
 	accessToken  string
 	refreshToken string
 	expiresAt    time.Time
-	creds        *credentials
 }
 
 func NewCredentials() *credentials {
 	clientId := viper.GetString("spfy-id")
 	clientSecret := viper.GetString("spfy-secret")
+	state := RandStringBytes(16)
 
 	return &credentials{
 		clientId:     clientId,
 		clientSecret: clientSecret,
+		state:        state,
 	}
 }
 
@@ -48,13 +50,10 @@ func NewAuth() (*auth, error) {
 	refreshToken := viper.GetString("spfy-refresh")
 	expiresAt := viper.GetTime("spfy-expires-at")
 
-	creds := NewCredentials()
-
 	return &auth{
 		accessToken:  accessToken,
 		refreshToken: refreshToken,
 		expiresAt:    expiresAt,
-		creds:        creds,
 	}, nil
 }
 
@@ -112,7 +111,7 @@ func getAuthorizationHeader() string {
 	return fmt.Sprintf("Basic %s", string(dst))
 }
 
-func (c *credentials) GetAuthURL(state string) string {
+func (c *credentials) GetAuthURL() string {
 	u, err := url.Parse(auth_url)
 	if err != nil {
 		log.Fatal(err)
@@ -123,7 +122,7 @@ func (c *credentials) GetAuthURL(state string) string {
 	q.Set("client_id", c.clientId)
 	q.Set("scope", scope)
 	q.Set("redirect_uri", "http://"+redirect_url)
-	q.Set("state", state)
+	q.Set("state", c.state)
 
 	// Encode the Query
 	u.RawQuery = q.Encode()

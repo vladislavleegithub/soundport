@@ -8,12 +8,15 @@ import (
 )
 
 type playlistTracks struct {
+	Total  int `json:"total"`
 	Tracks []struct {
-		Album struct {
+		Track struct {
+			Album struct {
+				Name string `json:"name"`
+			} `json:"album"`
 			Name string `json:"name"`
-		} `json:"album"`
-		Name string `json:"name"`
-	} `json:"tracks"`
+		} `json:"track"`
+	} `json:"items"`
 }
 
 func (a *auth) GetTracks(tracksUrl string) (playlistTracks, error) {

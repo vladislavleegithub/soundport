@@ -25,6 +25,7 @@ func (p Playlists) FilterValue() string { return p.Name }
 func (p Playlists) Title() string       { return p.Name }
 func (p Playlists) Description() string { return p.Desc }
 
+// Api return struct
 type spfyPlaylists struct {
 	Total         int         `json:"total"`
 	ItemPlaylists []Playlists `json:"items"`

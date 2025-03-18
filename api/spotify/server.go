@@ -9,7 +9,7 @@ import (
 
 var glbLogger = logger.GetInstance()
 
-func StartHttpServer(ch chan int, state string) error {
+func (c *credentials) StartHttpServer(ch chan int) error {
 	handleCallback := func(w http.ResponseWriter, r *http.Request) {
 		// Unpack query params
 		params, err := url.ParseQuery(r.URL.RawQuery)
@@ -26,7 +26,7 @@ func StartHttpServer(ch chan int, state string) error {
 
 		// Check state sent from spotify
 		retState := params.Get("state")
-		if retState != state {
+		if retState != c.state {
 			glbLogger.Println("State mismatch error")
 			ch <- -1
 		}

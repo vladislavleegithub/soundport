@@ -3,7 +3,6 @@ package ytmusic
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"io"
 	"net/http"
 
@@ -59,23 +58,14 @@ func constructHeader(req *http.Request) error {
 	// Init base headers
 	initHeaders(req)
 
-	visitorId, err := GetVisitorId()
+	visitorId, err := getVisitorId()
 	if err != nil {
 		glbLogger.Println("error getting visitor id: ", err)
 		return err
 	}
 
 	cookie := viper.GetString("yt-cookie")
-	if len(cookie) == 0 {
-		// FIX: Fix error message
-		return errors.New("unset cookie. Please set")
-	}
-
-	authHeader, err := getAuthToken(cookie)
-	if err != nil {
-		glbLogger.Println("error getting auth header: ", err)
-		return err
-	}
+	authHeader := viper.GetString("yt-auth-token")
 
 	// Add the remaining two headers
 	req.Header.Add("X-Goog-Visitor-Id", visitorId)

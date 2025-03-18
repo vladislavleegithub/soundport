@@ -1,22 +1,25 @@
-package cmd
+package spotify
 
 import (
 	"fmt"
 	"os"
 	"strings"
 
+	"github.com/Samarthbhat52/soundport/cmd/ui"
+	"github.com/Samarthbhat52/soundport/logger"
 	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
+var glbLogger = logger.GetInstance()
+
 var (
 	spfyClientId     string
 	spfyClientSecret string
-	ytmCookie        string
 )
 
-var form = huh.NewForm(
+var spfyForm = huh.NewForm(
 	huh.NewGroup(
 		huh.NewInput().
 			Title("Client ID").
@@ -29,18 +32,9 @@ var form = huh.NewForm(
 			Description("Eneter your spotify client secret").
 			Value(&spfyClientSecret).
 			Validate(huh.ValidateNotEmpty()),
-	).Title("Spotify setup"),
-
-	huh.NewGroup(
-		huh.NewText().
-			Title("YT Music cookie").
-			Description("Eneter your YT Music cookie").
-			CharLimit(1810).
-			Validate(huh.ValidateNotEmpty()),
-	).Title("YT Music setup"),
+	).Title("Spotify setup").WithWidth(20),
 )
 
-// FIX : DECOUPLE SPOTIFY AND YT SETUP
 var setupCmd = &cobra.Command{
 	Use:   "setup",
 	Short: "",
@@ -49,7 +43,7 @@ var setupCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var status strings.Builder
 
-		err := form.Run()
+		err := spfyForm.Run()
 		if err != nil {
 			glbLogger.Println(err)
 			os.Exit(1)
@@ -57,23 +51,18 @@ var setupCmd = &cobra.Command{
 
 		viper.Set("spfy-id", spfyClientId)
 		viper.Set("spfy-secret", spfyClientSecret)
-		viper.Set("yt-cookie", ytmCookie)
 
 		err = viper.WriteConfig()
 		if err != nil {
 			glbLogger.Println("Error writing to config")
 
-			status.WriteString(red.Render("Setup failed\n"))
+			status.WriteString(ui.Red.Render("Setup failed\n"))
 			fmt.Println(status.String())
 
 			os.Exit(1)
 		}
 
-		status.WriteString(green.Render("Setup successful\n"))
+		status.WriteString(ui.Green.Render("Setup successful\n"))
 		fmt.Println(status.String())
 	},
-}
-
-func init() {
-	rootCmd.AddCommand(setupCmd)
 }
