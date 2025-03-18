@@ -10,7 +10,8 @@ import (
 
 // Two views.
 // 1. List playlists.
-// 2. Show Number of songs in playlist.
+// 2. format songs of selected playlist.
+// 3. find songs from yt music.
 
 const (
 	progressBarWidth  = 71
@@ -29,14 +30,15 @@ var (
 	mainStyle     = lipgloss.NewStyle().MarginLeft(2)
 )
 
+// TODO: Progress float64
 type model struct {
-	List     list.Model
-	Quitting bool
-	Choice   spotify.Playlists
-	Progress float64
-	Spinner  spinner.Model
-	SongLen  int
-	msg      string
+	List            list.Model
+	Choice          spotify.Playlists
+	foundSongs      chan string
+	done            chan bool
+	foundSongsCount int
+	Spinner         spinner.Model
+	Quitting        bool
 }
 
 func InitModel(list list.Model) model {
@@ -47,6 +49,7 @@ func InitModel(list list.Model) model {
 	return model{
 		List:    list,
 		Spinner: s,
+		done:    make(chan bool),
 	}
 }
 

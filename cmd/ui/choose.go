@@ -31,8 +31,6 @@ func viewChoices(m model) string {
 	return "\n" + m.List.View()
 }
 
-type songsList spotify.PlaylistTracks
-
 func getSongsCmd(m model) tea.Cmd {
 	return func() tea.Msg {
 		a, _ := spotify.NewAuth()
@@ -42,6 +40,6 @@ func getSongsCmd(m model) tea.Cmd {
 			return nil
 		}
 
-		return songsList(songs)
+		return spotify.PlaylistTracks(songs)
 	}
 }

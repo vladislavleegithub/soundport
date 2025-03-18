@@ -10,8 +10,8 @@ import (
 const (
 	YTMUSIC_BASE_URL = "https://music.youtube.com"
 	YTMUSIC_API      = YTMUSIC_BASE_URL + "/youtubei/v1"
-	YTMUSIC_SEARCH   = YTMUSIC_BASE_URL + YTMUSIC_API + "/search?limit=1"
-	YTMUSIC_PLAYLIST = YTMUSIC_BASE_URL + YTMUSIC_API + "/playlist/create"
+	YTMUSIC_SEARCH   = YTMUSIC_API + "/search?limit=1"
+	YTMUSIC_PLAYLIST = YTMUSIC_API + "/playlist/create"
 	PARAM            = "EgWKAQIIAWoQEAMQBBAJEAoQBRAREBAQFQ%3D%3D"
 )
 

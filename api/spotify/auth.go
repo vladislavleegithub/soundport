@@ -77,8 +77,6 @@ func getAccessToken(authCode string) (string, error) {
 }
 
 func RefreshSession() error {
-	fmt.Println("REFRESH SESSION CALLED")
-
 	// Set up request body
 	body := url.Values{}
 	body.Add("grant_type", "refresh_token")
