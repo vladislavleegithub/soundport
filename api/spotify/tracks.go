@@ -7,18 +7,20 @@ import (
 	"net/http"
 )
 
+type Track struct {
+	Album struct {
+		Name string `json:"name"`
+	} `json:"album"`
+	Artists []struct {
+		Name string `json:"name"`
+	} `json:"artists"`
+	Name string `json:"name"`
+}
+
 type PlaylistTracks struct {
 	Total  int `json:"total"`
 	Tracks []struct {
-		Track struct {
-			Album struct {
-				Name string `json:"name"`
-			} `json:"album"`
-			Artists []struct {
-				Name string `json:"name"`
-			} `json:"artists"`
-			Name string `json:"name"`
-		} `json:"track"`
+		Track Track `json:"track"`
 	} `json:"items"`
 }
 

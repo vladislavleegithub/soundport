@@ -6,51 +6,7 @@ import (
 	"net/http"
 )
 
-// func SearchSong(songName []string) ([]string, error) {
-// 	// Init context
-// 	ctx := initContext()
-// 	client := &http.Client{}
-//
-// 	body := SearchRequestBody{
-// 		Ctx:    ctx,
-// 		Params: PARAM,
-// 	}
-//
-// 	// Returned video Ids
-// 	var videoIds []string
-// 	var wg sync.WaitGroup
-// 	ch := make(chan string, len(songName))
-//
-// 	// Run a go routine for every song name
-// 	for _, sn := range songName {
-// 		body.Query = sn
-// 		reqBody, err := json.Marshal(body)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-//
-// 		wg.Add(1)
-// 		go getSongInfo(*client, reqBody, &wg, ch)
-// 	}
-//
-// 	wg.Wait()
-// 	close(ch)
-//
-// 	for i := range ch {
-// 		if i == "" {
-// 			// TODO: Handle not found songs.
-// 			// Currently we are just skipping them without informing.
-// 			continue
-// 		}
-// 		videoIds = append(videoIds, i)
-// 	}
-//
-// 	return videoIds, nil
-// }
-
 func GetSongInfo(song string, ch chan<- string) {
-	// defer wg.Done()
-
 	ctx := initContext()
 	client := &http.Client{}
 

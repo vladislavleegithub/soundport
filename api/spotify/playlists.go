@@ -9,7 +9,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 )
 
-type Playlists struct {
+type Playlist struct {
 	Desc   string `json:"description"`
 	Link   string `json:"href"`
 	Id     string `json:"id"`
@@ -21,14 +21,14 @@ type Playlists struct {
 }
 
 // Make it compatable with bubbletea
-func (p Playlists) FilterValue() string { return p.Name }
-func (p Playlists) Title() string       { return p.Name }
-func (p Playlists) Description() string { return p.Desc }
+func (p Playlist) FilterValue() string { return p.Name }
+func (p Playlist) Title() string       { return p.Name }
+func (p Playlist) Description() string { return p.Desc }
 
 // Api return struct
 type spfyPlaylists struct {
-	Total         int         `json:"total"`
-	ItemPlaylists []Playlists `json:"items"`
+	Total         int        `json:"total"`
+	ItemPlaylists []Playlist `json:"items"`
 }
 
 func (s *spfyPlaylists) GetPlaylistItems() []list.Item {

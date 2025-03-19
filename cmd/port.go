@@ -32,7 +32,7 @@ func (d itemDelegate) Height() int                             { return 1 }
 func (d itemDelegate) Spacing() int                            { return 0 }
 func (d itemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
 func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
-	i, ok := listItem.(spotify.Playlists)
+	i, ok := listItem.(spotify.Playlist)
 	if !ok {
 		return
 	}
@@ -53,21 +53,7 @@ var portCmd = &cobra.Command{
 	Use:    "port",
 	PreRun: ensureLogin,
 	Run: func(cmd *cobra.Command, args []string) {
-		a, _ := spotify.NewAuth()
-
-		playlists, err := a.GetPlaylists()
-		if err != nil {
-			log.Fatal(err)
-		}
-		plItems := playlists.GetPlaylistItems()
-
-		l := list.New(plItems, itemDelegate{}, 20, 10)
-		l.Title = "Choose a playlist to port from"
-		l.Styles.Title = titleStyle
-		l.Styles.PaginationStyle = paginationStyle
-		l.Styles.HelpStyle = helpStyle
-
-		m := ui.InitModel(l)
+		m := ui.RootScreen()
 
 		if _, err := tea.NewProgram(m).Run(); err != nil {
 			fmt.Println("Error running program: ", err)
