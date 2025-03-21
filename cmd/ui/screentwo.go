@@ -128,10 +128,7 @@ func (m *screenTwoModel) waitForActivity() tea.Cmd {
 
 func (m *screenTwoModel) listenForActivity(songs []string) tea.Cmd {
 	return func() tea.Msg {
-		for _, sn := range songs {
-			go ytmusic.GetSongInfo(sn, m.ch)
-		}
-
+		ytmusic.GetSongInfo(songs, m.ch)
 		return nil
 	}
 }

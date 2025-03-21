@@ -4,48 +4,75 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"sync"
 )
 
-func GetSongInfo(song string, ch chan<- []string) {
+const batchSize = 5
+
+func GetSongInfo(songs []string, ch chan<- []string) {
+	// Batch requests
+	for start, end := 0, 0; start <= len(songs)-1; start = end {
+		end = start + batchSize
+		if end > len(songs) {
+			end = len(songs)
+		}
+
+		batchedSongs := songs[start:end]
+		batchProcess(batchedSongs, ch)
+	}
+
+	close(ch)
+}
+
+func batchProcess(songs []string, ch chan<- []string) {
 	ctx := initContext()
 	client := &http.Client{}
+	var wg sync.WaitGroup
 
-	body := SearchRequestBody{
-		Ctx:    ctx,
-		Params: PARAM,
-		Query:  song,
+	for _, song := range songs {
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+
+			body := SearchRequestBody{
+				Ctx:    ctx,
+				Params: PARAM,
+				Query:  song,
+			}
+			reqBody, err := json.Marshal(body)
+			if err != nil {
+				glbLogger.Println("Error constructing body: ", err)
+				return
+			}
+
+			req, err := http.NewRequest("POST", YTMUSIC_SEARCH, bytes.NewBuffer(reqBody))
+			if err != nil {
+				glbLogger.Println("Error constructing request: ", err)
+				return
+			}
+
+			resp, err := client.Do(req)
+			if err != nil {
+				glbLogger.Println("Error sending request: ", err)
+				return
+			}
+			defer resp.Body.Close()
+
+			// Read body into a struct
+			ret := ResponseStruct{}
+			decoder := json.NewDecoder(resp.Body)
+			err = decoder.Decode(&ret)
+			if err != nil {
+				glbLogger.Println("Error reading response body: ", err)
+				return
+			}
+
+			vidId := getVideoId(&ret)
+			ch <- []string{song, vidId}
+		}()
 	}
-
-	reqBody, err := json.Marshal(body)
-	if err != nil {
-		glbLogger.Println("Error constructing body: ", err)
-		return
-	}
-
-	req, err := http.NewRequest("POST", YTMUSIC_SEARCH, bytes.NewBuffer(reqBody))
-	if err != nil {
-		glbLogger.Println("Error constructing request: ", err)
-		return
-	}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		glbLogger.Println("Error sending request: ", err)
-		return
-	}
-	defer resp.Body.Close()
-
-	// Read body into a struct
-	ret := ResponseStruct{}
-	decoder := json.NewDecoder(resp.Body)
-	err = decoder.Decode(&ret)
-	if err != nil {
-		glbLogger.Println("Error reading response body: ", err)
-		return
-	}
-
-	vidId := getVideoId(&ret)
-	ch <- []string{song, vidId}
+	wg.Wait()
 }
 
 func getVideoId(ret *ResponseStruct) string {
