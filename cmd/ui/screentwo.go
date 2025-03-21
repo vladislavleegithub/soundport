@@ -9,15 +9,27 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type errMsg string
+type (
+	errMsg          string
+	responseMessage []string
+	createPlaylist  bool
+)
+
+type playlistDetails struct {
+	plName     string
+	plDesc     string
+	totalSongs int
+}
 
 type screenTwoModel struct {
-	songs      []string
-	totalSongs int
-	totalFound int
-	ch         chan string
-	quitting   bool
-	err        errMsg
+	playlistDetails
+	ch            chan []string
+	songs         []string
+	songIds       []string
+	notFound      []string
+	totalFound    int
+	totalNotFound int
+	quitting      bool
 }
 
 func ScreenTwo(pl spotify.Playlist) *screenTwoModel {
@@ -32,10 +44,16 @@ func ScreenTwo(pl spotify.Playlist) *screenTwoModel {
 
 	trackStrings := constructSongsList(tracks)
 
-	return &screenTwoModel{
-		songs:      trackStrings,
+	plDetails := playlistDetails{
 		totalSongs: tracks.Total,
-		ch:         make(chan string, tracks.Total),
+		plName:     pl.Name,
+		plDesc:     pl.Desc,
+	}
+
+	return &screenTwoModel{
+		songs:           trackStrings,
+		ch:              make(chan []string, tracks.Total),
+		playlistDetails: plDetails,
 	}
 }
 
@@ -60,17 +78,30 @@ func (m *screenTwoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case resp:
 		return m, tea.Batch(
-			waitForActivity(m.ch),
-			listenForActivity(m.ch, m.songs),
+			m.waitForActivity(),
+			m.listenForActivity(m.songs),
 		)
 
 	case responseMessage:
-		m.totalFound++
-		if m.totalSongs == m.totalFound {
-			m.quitting = true
-			return m, tea.Quit
+
+		if msg[1] == "" {
+			// TODO: Write not found songs onto a file
+			m.totalNotFound++
+			m.notFound = append(m.notFound, msg[0])
+		} else {
+			m.totalFound++
+			m.songIds = append(m.songIds, msg[1])
 		}
-		return m, waitForActivity(m.ch)
+
+		if m.totalNotFound+m.totalFound == m.totalSongs {
+			return m, m.createPlaylistFunc()
+		}
+
+		return m, m.waitForActivity()
+
+	case createPlaylist:
+		m.quitting = true
+		return m, tea.Quit
 
 	default:
 		return m, nil
@@ -89,21 +120,31 @@ func (m *screenTwoModel) View() string {
 	return s
 }
 
-type responseMessage string
-
-func waitForActivity(sub chan string) tea.Cmd {
+func (m *screenTwoModel) waitForActivity() tea.Cmd {
 	return func() tea.Msg {
-		return responseMessage(<-sub)
+		return responseMessage(<-m.ch)
 	}
 }
 
-func listenForActivity(sub chan string, songs []string) tea.Cmd {
+func (m *screenTwoModel) listenForActivity(songs []string) tea.Cmd {
 	return func() tea.Msg {
 		for _, sn := range songs {
-			go ytmusic.GetSongInfo(sn, sub)
+			go ytmusic.GetSongInfo(sn, m.ch)
 		}
 
 		return nil
+	}
+}
+
+func (m *screenTwoModel) createPlaylistFunc() tea.Cmd {
+	return func() tea.Msg {
+		err := ytmusic.PlaylistAdd(m.plName, "PRIVATE", m.songIds)
+		if err != nil {
+			glbLogger.Println("error creating playlist: ", err)
+			os.Exit(1)
+		}
+
+		return createPlaylist(true)
 	}
 }
 
@@ -112,8 +153,7 @@ func constructSongsList(track spotify.PlaylistTracks) []string {
 
 	for i := range track.Total {
 		sn := track.Tracks[i].Track.Name
-		sn += " " + track.Tracks[i].Track.Artists[0].Name
-		sn += " " + track.Tracks[i].Track.Album.Name
+		sn += " By: " + track.Tracks[i].Track.Artists[0].Name
 		songsList[i] = sn
 	}
 

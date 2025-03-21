@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func GetSongInfo(song string, ch chan<- string) {
+func GetSongInfo(song string, ch chan<- []string) {
 	ctx := initContext()
 	client := &http.Client{}
 
@@ -45,7 +45,7 @@ func GetSongInfo(song string, ch chan<- string) {
 	}
 
 	vidId := getVideoId(&ret)
-	ch <- vidId
+	ch <- []string{song, vidId}
 }
 
 func getVideoId(ret *ResponseStruct) string {

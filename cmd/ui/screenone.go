@@ -98,9 +98,9 @@ func (s *screenOneModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				s.selected = pl
 			}
 
-			// Init screen two with the selected playlist
 			screenTwo := ScreenTwo(s.selected)
 
+			// Bandaid fix, to identify the type sent from screen one
 			return screenTwo.Update(resp(""))
 		default:
 			var cmd tea.Cmd

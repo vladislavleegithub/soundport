@@ -3,6 +3,7 @@ package ytmusic
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -45,6 +46,10 @@ func PlaylistAdd(name string, status StatusType, songs []string) error {
 		return err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("got error code: %d", resp.StatusCode)
+	}
 
 	_, err = io.ReadAll(resp.Body)
 	if err != nil {

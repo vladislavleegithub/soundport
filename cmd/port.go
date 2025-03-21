@@ -81,7 +81,7 @@ func ensureLogin(cmd *cobra.Command, args []string) {
 
 	expiresAt := viper.GetTime("spfy-expires-at")
 
-	// Check if auth token is close to expiry
+	// Refresh even if auth token is close to expiry
 	checkTime := expiresAt.Add(-10 * time.Minute)
 	if time.Now().Before(checkTime) {
 		return
