@@ -14,8 +14,8 @@ import (
 
 var loginCmd = &cobra.Command{
 	Use:    "login",
-	Short:  "",
-	Long:   "",
+	Short:  "Authenticates the user with Spotify.",
+	Long:   "This command logs the user into their Spotify account. If credentials are already stored, it refreshes the authentication tokens to maintain access to Spotify's services.",
 	Args:   cobra.NoArgs,
 	PreRun: ensureInit,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -46,7 +46,6 @@ var loginCmd = &cobra.Command{
 	},
 }
 
-// FIX : DECOUPLE SPOTIFY AND YT SETUP
 func ensureInit(cmd *cobra.Command, args []string) {
 	spfyId := viper.GetString("spfy-id")
 	spfySecret := viper.GetString("spfy-secret")

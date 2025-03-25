@@ -37,8 +37,8 @@ var spfyForm = huh.NewForm(
 
 var setupCmd = &cobra.Command{
 	Use:   "setup",
-	Short: "",
-	Long:  "",
+	Short: "Sets up Spotify api credentials.",
+	Long:  "Prompts user to input their Spotify developer credentials to ensure soundport can interact with Sotify's API.",
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		var status strings.Builder

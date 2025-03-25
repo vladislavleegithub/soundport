@@ -16,7 +16,8 @@ import (
 var (
 	glbLogger = logger.GetInstance()
 	Cmd       = &cobra.Command{
-		Use: "ytmusic",
+		Use:   "ytmusic",
+		Short: "Handles YouTube Music functionalities.",
 	}
 )
 
@@ -35,8 +36,8 @@ var ytmForm = huh.NewForm(
 
 var ytmusicSetup = &cobra.Command{
 	Use:   "setup",
-	Short: "",
-	Long:  "",
+	Short: "Sets up Youtube Music credentials.",
+	Long:  "Prompts user to input their Youtube Music authentication cookie extracted from the browser. This ensures that playlist creation has the required credentials.",
 	Run: func(cmd *cobra.Command, args []string) {
 		var status strings.Builder
 

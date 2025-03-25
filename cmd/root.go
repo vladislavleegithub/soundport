@@ -18,7 +18,8 @@ const CONFIG_FILE_NAME = ".soundport.json"
 var (
 	glbLogger = logger.GetInstance()
 	rootCmd   = &cobra.Command{
-		Use: "soundport",
+		Use:   "soundport",
+		Short: "The root command for Soundport CLI, used to manage and interact with music services.",
 	}
 )
 

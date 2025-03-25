@@ -14,6 +14,8 @@ import (
 
 var PortCmd = &cobra.Command{
 	Use:    "port",
+	Short:  "Select and port a playlist from Spotify to YT Music.",
+	Long:   "Promts user to select a playlist from the ones found in their account. When selected, it starts the process of porting all the tracks found in that playlist.",
 	PreRun: ensureLogin,
 	Run: func(cmd *cobra.Command, args []string) {
 		m := rootScreen()
