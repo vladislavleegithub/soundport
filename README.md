@@ -80,14 +80,18 @@ To overcome the API limitation, SoundPort mimics legitimate browser requests.
 - Go to  [Youtube Music homepage](music.youtube.com)
 - Open developer tools and select the “Network” tab.
 - To find an Authenticated `POST` request, filer the requests by `/browse` using the search bar.
-![](README/Screenshot%202025-03-25%20at%206.40.48%E2%80%AFPM.jpg)
+  
+![Screenshot 2025-03-25 at 6 40 48 PM](https://github.com/user-attachments/assets/fc8ef573-279a-48f2-8928-768dcd28a505)
+
 
 - Refresh the page to find the `POST` request. It should look something like this. If you can’t find it, click the `Library` tab on the sidebar.
-![](README/Screenshot%202025-03-25%20at%206.45.03%E2%80%AFPM.jpg)
+  
+![Screenshot 2025-03-25 at 6 45 03 PM](https://github.com/user-attachments/assets/49b79f92-e16b-4bde-805c-593b22cca067)
 
 - Click on the request, Scroll till you find `Request Headers` section.
 - Copy the `Cookie` property of the request header. Copy everything from 	`__Secure-ROLLOUT_TOKEN` to the end.
-![](README/Screenshot%202025-03-25%20at%206.47.44%E2%80%AFPM.jpg)
+  
+![Screenshot 2025-03-25 at 6 47 44 PM](https://github.com/user-attachments/assets/1a26bb3a-3391-4841-9570-58238e60ef86)
 
 ### Configure in SoundPort
 
