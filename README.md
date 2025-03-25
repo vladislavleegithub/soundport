@@ -1,8 +1,21 @@
 # SoundPort CLI
 
-## Overview
-
 SoundPort is a command-line tool that enables users to transfer playlists from Spotify to YouTube Music seamlessly.
+
+## Index
+
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Spotify setup](#spotify-setup)
+  - [How to Obtain Spotify Developer Credentials](#how-to-obtain-spotify-developer-credentials)
+  - [Configure in SoundPort](#configure-in-soundport)
+- [YouTube Music Setup](#youtube-music-setup)
+  - [The API Limitation](#the-api-limitation)
+  - [Authentication Approach: Browser Request Mimicry](#authentication-approach-browser-request-mimicry)
+  - [How It Works](#how-it-works)
+  - [Obtaining Your YouTube Music Cookie](#obtaining-your-youtube-music-cookie)
+  - [Configure in SoundPort](#configure-in-soundport-1)
+- [Running the `port` command](#running-the-port-command)
 
 ## Prerequisites
 
@@ -103,4 +116,11 @@ To overcome the API limitation, SoundPort mimics legitimate browser requests.
 > * Never share your cookie with anyone.
 > * Cookies can provide significant account access.
 > * The cookie saved in `SoundPort` is saved on your local system and secure.
+
+## Running the `port` command
+
+After both ytmusic and spotify have been setup:
+- Run `soundport port` command.
+- Select the playlist you want to port.
+- And thats it.
 
