@@ -7,7 +7,7 @@ import (
 	"sync"
 )
 
-const batchSize = 5
+const batchSize = 50
 
 func GetSongInfo(songs []string, ch chan<- []string) {
 	// Batch requests
@@ -27,30 +27,30 @@ func GetSongInfo(songs []string, ch chan<- []string) {
 func batchProcess(songs []string, ch chan<- []string) {
 	ctx := initContext()
 	client := &http.Client{}
-	var wg sync.WaitGroup
 
+	var wg sync.WaitGroup
 	for _, song := range songs {
 		wg.Add(1)
 
+		body := SearchRequestBody{
+			Ctx:    ctx,
+			Params: PARAM,
+			Query:  song,
+		}
+		reqBody, err := json.Marshal(body)
+		if err != nil {
+			glbLogger.Println("Error constructing body: ", err)
+			return
+		}
+
+		req, err := http.NewRequest("POST", YTMUSIC_SEARCH, bytes.NewBuffer(reqBody))
+		if err != nil {
+			glbLogger.Println("Error constructing request: ", err)
+			return
+		}
+
 		go func() {
 			defer wg.Done()
-
-			body := SearchRequestBody{
-				Ctx:    ctx,
-				Params: PARAM,
-				Query:  song,
-			}
-			reqBody, err := json.Marshal(body)
-			if err != nil {
-				glbLogger.Println("Error constructing body: ", err)
-				return
-			}
-
-			req, err := http.NewRequest("POST", YTMUSIC_SEARCH, bytes.NewBuffer(reqBody))
-			if err != nil {
-				glbLogger.Println("Error constructing request: ", err)
-				return
-			}
 
 			resp, err := client.Do(req)
 			if err != nil {

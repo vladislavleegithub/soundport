@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 
+	"github.com/Samarthbhat52/soundport/cmd/port"
 	"github.com/Samarthbhat52/soundport/cmd/spotify"
 	"github.com/Samarthbhat52/soundport/cmd/ytmusic"
 	"github.com/Samarthbhat52/soundport/logger"
@@ -30,7 +31,7 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	rootCmd.AddCommand(portCmd)
+	rootCmd.AddCommand(port.PortCmd)
 	rootCmd.AddCommand(spotify.Cmd)
 	rootCmd.AddCommand(ytmusic.Cmd)
 }

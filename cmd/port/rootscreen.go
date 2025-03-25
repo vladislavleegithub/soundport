@@ -1,4 +1,4 @@
-package ui
+package port
 
 import (
 	"github.com/Samarthbhat52/soundport/logger"
@@ -11,9 +11,9 @@ type rootScreenModal struct {
 	model tea.Model
 }
 
-func RootScreen() *rootScreenModal {
+func rootScreen() *rootScreenModal {
 	return &rootScreenModal{
-		model: ScreenOne(),
+		model: screenOne(),
 	}
 }
 

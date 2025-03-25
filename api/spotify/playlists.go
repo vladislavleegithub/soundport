@@ -11,8 +11,6 @@ import (
 
 type Playlist struct {
 	Desc   string `json:"description"`
-	Link   string `json:"href"`
-	Id     string `json:"id"`
 	Name   string `json:"name"`
 	Tracks struct {
 		Link  string `json:"href"`
@@ -23,7 +21,7 @@ type Playlist struct {
 // Make it compatable with bubbletea
 func (p Playlist) FilterValue() string { return p.Name }
 func (p Playlist) Title() string       { return p.Name }
-func (p Playlist) Description() string { return p.Desc }
+func (p Playlist) Description() string { return fmt.Sprintf("Num tracks: %d", p.Tracks.Total) }
 
 // Api return struct
 type spfyPlaylists struct {

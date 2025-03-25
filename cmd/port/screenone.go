@@ -1,4 +1,4 @@
-package ui
+package port
 
 import (
 	"fmt"
@@ -52,7 +52,7 @@ type screenOneModel struct {
 	quitting  bool
 }
 
-func ScreenOne() *screenOneModel {
+func screenOne() *screenOneModel {
 	a, _ := spotify.NewAuth()
 
 	playlists, err := a.GetPlaylists()
@@ -98,7 +98,7 @@ func (s *screenOneModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				s.selected = pl
 			}
 
-			screenTwo := ScreenTwo(s.selected)
+			screenTwo := screenTwo(s.selected)
 
 			// Bandaid fix, to identify the type sent from screen one
 			return screenTwo.Update(resp(""))

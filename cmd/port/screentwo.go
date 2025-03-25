@@ -1,4 +1,4 @@
-package ui
+package port
 
 import (
 	"fmt"
@@ -32,7 +32,7 @@ type screenTwoModel struct {
 	quitting      bool
 }
 
-func ScreenTwo(pl spotify.Playlist) *screenTwoModel {
+func screenTwo(pl spotify.Playlist) *screenTwoModel {
 	a, _ := spotify.NewAuth()
 	songs, err := a.GetTracks(pl.Tracks.Link)
 	if err != nil {
