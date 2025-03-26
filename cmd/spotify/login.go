@@ -28,13 +28,11 @@ var loginCmd = &cobra.Command{
 		fmt.Println(message.String())
 
 		ch := make(chan int)
-
-		// Auth permission url
-		url := creds.GetAuthURL()
+		// Handles callback
 		go creds.StartHttpServer(ch)
-		go spotify.OpenBrowser(url)
-
+		go creds.OpenBrowser()
 		val := <-ch
+
 		if val == 0 {
 			status.WriteString(ui.Green.Render("Login successful\n"))
 			fmt.Println(status.String())
@@ -42,7 +40,7 @@ var loginCmd = &cobra.Command{
 			status.WriteString(ui.Red.Render("Login failed\n"))
 			fmt.Println(status.String())
 		}
-		fmt.Println("Browser window/tab can be closed.")
+		fmt.Printf("Browser window/tab can be closed.\n\n")
 	},
 }
 

@@ -3,14 +3,17 @@ package spotify
 import (
 	"encoding/base64"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
+	"github.com/Samarthbhat52/soundport/logger"
+	"github.com/pkg/browser"
 	"github.com/spf13/viper"
 )
+
+var glbLogger = logger.GetInstance()
 
 type authResponse struct {
 	AccessToken  string        `json:"access_token"`
@@ -24,6 +27,7 @@ type credentials struct {
 	clientId     string
 	clientSecret string
 	state        string
+	authUrl      string
 }
 
 // Used for making authenticated queries to spotify api
@@ -36,12 +40,14 @@ type auth struct {
 func NewCredentials() *credentials {
 	clientId := viper.GetString("spfy-id")
 	clientSecret := viper.GetString("spfy-secret")
-	state := RandStringBytes(16)
+	state := randStringBytes(16)
+	url := getAuthURL(clientId, state)
 
 	return &credentials{
 		clientId:     clientId,
 		clientSecret: clientSecret,
 		state:        state,
+		authUrl:      url,
 	}
 }
 
@@ -57,38 +63,28 @@ func NewAuth() (*auth, error) {
 	}, nil
 }
 
-func getAccessToken(authCode string) (string, error) {
+func getAccessToken(authCode string) error {
 	body := url.Values{}
 	body.Add("code", authCode)
 	body.Add("redirect_uri", "http://"+redirect_url)
 	body.Add("grant_type", "authorization_code")
+	encodedBody := strings.NewReader(body.Encode())
 
-	req, err := http.NewRequest("POST", token_url, strings.NewReader(body.Encode()))
+	err := makeAuthRequest(encodedBody)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	err = handleAuthResponse(req)
-	if err != nil {
-		return "", err
-	}
-
-	return "processed", nil
+	return nil
 }
 
 func RefreshSession() error {
-	// Set up request body
 	body := url.Values{}
 	body.Add("grant_type", "refresh_token")
 	body.Add("refresh_token", viper.GetString("spfy-refresh"))
 	encodedBody := strings.NewReader(body.Encode())
 
-	req, err := http.NewRequest("POST", token_url, encodedBody)
-	if err != nil {
-		return err
-	}
-
-	err = handleAuthResponse(req)
+	err := makeAuthRequest(encodedBody)
 	if err != nil {
 		return err
 	}
@@ -109,21 +105,49 @@ func getAuthorizationHeader() string {
 	return fmt.Sprintf("Basic %s", string(dst))
 }
 
-func (c *credentials) GetAuthURL() string {
-	u, err := url.Parse(auth_url)
-	if err != nil {
-		log.Fatal(err)
+func (c *credentials) StartHttpServer(ch chan int) error {
+	handleCallback := func(w http.ResponseWriter, r *http.Request) {
+		params, err := url.ParseQuery(r.URL.RawQuery)
+		if err != nil {
+			glbLogger.Println("Error decoding query params: ", err.Error())
+			ch <- -1
+		}
+
+		error := params.Get("error")
+		if error != "" {
+			glbLogger.Println("Permission denied: ", error)
+			ch <- -1
+		}
+
+		// Check state sent from spotify
+		retState := params.Get("state")
+		if retState != c.state {
+			glbLogger.Println("State mismatch error")
+			ch <- -1
+		}
+
+		authCode := params.Get("code")
+		if authCode == "" {
+			glbLogger.Println("No auth token: ", authCode)
+			ch <- -1
+		}
+
+		// Get access_token and refresh_token
+		err = getAccessToken(authCode)
+		if err != nil {
+			glbLogger.Println("Error getting access token: ", err)
+			ch <- -1
+		}
+		ch <- 0
 	}
 
-	q := u.Query()
-	q.Set("response_type", "code")
-	q.Set("client_id", c.clientId)
-	q.Set("scope", scope)
-	q.Set("redirect_uri", "http://"+redirect_url)
-	q.Set("state", c.state)
+	http.HandleFunc("/callback", handleCallback)
 
-	// Encode the Query
-	u.RawQuery = q.Encode()
+	return http.ListenAndServe(server_url, nil)
+}
 
-	return u.String()
+func (c *credentials) OpenBrowser() {
+	browser.Stdout = nil
+	browser.Stderr = nil
+	browser.OpenURL(c.authUrl)
 }
