@@ -52,7 +52,7 @@ func ensureLogin(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	err := spotify.RefreshSession(spfyRefresh)
+	err := spotify.RefreshSession()
 	if err != nil {
 		log.Fatal("error refreshing session")
 	}

@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/Samarthbhat52/soundport/api/spotify"
-	"github.com/Samarthbhat52/soundport/cmd/ui"
+	"github.com/Samarthbhat52/soundport/ui"
 	"github.com/spf13/cobra"
 )
 

@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Samarthbhat52/soundport/cmd/ui"
 	"github.com/Samarthbhat52/soundport/logger"
+	"github.com/Samarthbhat52/soundport/ui"
 	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
