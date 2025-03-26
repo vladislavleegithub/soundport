@@ -40,19 +40,18 @@ func screenTwo(pl spotify.Playlist) *screenTwoModel {
 		fmt.Println("error getting playlist tracks")
 		os.Exit(1)
 	}
-	tracks := spotify.PlaylistTracks(songs)
 
-	trackStrings := constructSongsList(tracks)
+	trackStrings := constructSongsList(songs)
 
 	plDetails := playlistDetails{
-		totalSongs: tracks.Total,
+		totalSongs: songs.Total,
 		plName:     pl.Name,
 		plDesc:     pl.Desc,
 	}
 
 	return &screenTwoModel{
 		songs:           trackStrings,
-		ch:              make(chan []string, tracks.Total),
+		ch:              make(chan []string, songs.Total),
 		playlistDetails: plDetails,
 	}
 }

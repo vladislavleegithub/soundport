@@ -28,12 +28,12 @@ func (d itemDelegate) Spacing() int                            { return 0 }
 func (d itemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
 
 func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
-	i, ok := listItem.(spotify.Playlist)
+	i, ok := listItem.(list.DefaultItem)
 	if !ok {
 		return
 	}
 
-	str := fmt.Sprintf("%d. %s", index+1, i.Name)
+	str := fmt.Sprintf("%d. %s", index+1, i.Title())
 
 	fn := itemStyle.Render
 	if index == m.Index() {
