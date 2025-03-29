@@ -8,20 +8,16 @@ import (
 	"github.com/Samarthbhat52/soundport/cmd/port"
 	"github.com/Samarthbhat52/soundport/cmd/spotify"
 	"github.com/Samarthbhat52/soundport/cmd/ytmusic"
-	"github.com/Samarthbhat52/soundport/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 const CONFIG_FILE_NAME = ".soundport.json"
 
-var (
-	glbLogger = logger.GetInstance()
-	rootCmd   = &cobra.Command{
-		Use:   "soundport",
-		Short: "The root command for Soundport CLI, used to manage and interact with music services.",
-	}
-)
+var rootCmd = &cobra.Command{
+	Use:   "soundport",
+	Short: "The root command for Soundport CLI, used to manage and interact with music services.",
+}
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {

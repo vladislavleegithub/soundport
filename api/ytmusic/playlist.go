@@ -12,15 +12,14 @@ import (
 
 type StatusType string
 
-func PlaylistAdd(name string, status StatusType, songs []string) error {
-	// init context
-	ctx := initContext()
+func (c *Client) AddPlaylist(title string, songs []string) error {
+	glbLogger.Printf("TOTAL SONGS FOUND: %d", len(songs))
 
 	// prep body
 	body := CreatePlaylistRequestBody{
-		Ctx:           ctx,
-		Title:         name,
-		PrivacyStatus: status,
+		Ctx:           c.ctx,
+		Title:         title,
+		PrivacyStatus: "PRIVATE",
 		VideoIds:      songs,
 	}
 
@@ -29,7 +28,6 @@ func PlaylistAdd(name string, status StatusType, songs []string) error {
 		return err
 	}
 
-	client := &http.Client{}
 	req, err := http.NewRequest("POST", YTMUSIC_PLAYLIST, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return err
@@ -41,7 +39,7 @@ func PlaylistAdd(name string, status StatusType, songs []string) error {
 		return err
 	}
 
-	resp, err := client.Do(req)
+	resp, err := c.client.Do(req)
 	if err != nil {
 		return err
 	}

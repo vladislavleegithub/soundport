@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/Samarthbhat52/soundport/api/types"
 	"github.com/charmbracelet/bubbles/list"
 )
 
@@ -22,6 +23,16 @@ type Playlist struct {
 func (p Playlist) FilterValue() string { return p.Name }
 func (p Playlist) Title() string       { return p.Name }
 func (p Playlist) Description() string { return fmt.Sprintf("Num tracks: %d", p.Tracks.Total) }
+func (p Playlist) GetPlaylistDetails() *types.PlaylistDetails {
+	selected := types.PlaylistDetails{}
+
+	selected.PlId = p.Tracks.Link
+	selected.PlName = p.Name
+	selected.PlDesc = p.Desc
+	selected.TotalTracks = p.Tracks.Total
+
+	return &selected
+}
 
 // Api return struct
 type spfyPlaylists struct {
@@ -39,7 +50,7 @@ func (s *spfyPlaylists) GetPlaylistItems() []list.Item {
 	return items
 }
 
-func (a *auth) GetPlaylists() (*spfyPlaylists, error) {
+func (a *auth) GetPlaylists() ([]list.Item, error) {
 	// setup auth herader
 	authHeader := fmt.Sprintf("Bearer %s", a.accessToken)
 
@@ -69,5 +80,7 @@ func (a *auth) GetPlaylists() (*spfyPlaylists, error) {
 		return nil, err
 	}
 
-	return &playlists, nil
+	playlistItems := playlists.GetPlaylistItems()
+
+	return playlistItems, nil
 }

@@ -44,6 +44,18 @@ type Context struct {
 	} `json:"client"`
 }
 
+type Client struct {
+	ctx    *Context
+	client *http.Client
+}
+
+func NewClient() *Client {
+	return &Client{
+		ctx:    initContext(),
+		client: &http.Client{},
+	}
+}
+
 func initContext() *Context {
 	context := &Context{}
 	context.Client.Hl = "en"

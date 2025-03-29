@@ -1,26 +1,39 @@
 package types
 
-import "github.com/charmbracelet/bubbles/list"
+import (
+	"github.com/charmbracelet/bubbles/list"
+)
 
-/*
-The main port command:
-	1. Should take in destination.
-	2. Fetch source playlists.
-	3. Select a playlist.
-	4. Pass the selected playlist to screen two.
+type PlaylistDetails struct {
+	PlId        string
+	PlName      string
+	PlDesc      string
+	TotalTracks int
+}
 
-Screen 2:
-	1. accepts a playlist interface.
-	2. fetches the available tracks.
-	3. Does a batch submit.
+func (p PlaylistDetails) FilterValue() string { return p.PlName }
 
-playlist interface:
-	1. GetTracks() []string
-	2. CreatePlaylist(songs []string) bool
-	2. <-- More methods will be added later -->
+type SongDetails struct {
+	Name  string
+	Id    string
+	Found bool
+}
 
-*/
+type Source interface {
+	GetPlaylists() ([]list.Item, error)
+	GetPlaylistTracks(string) ([]string, error)
+}
 
-type Playlists interface {
-	GetPlaylists() []list.DefaultItem
+type Playlist interface {
+	list.DefaultItem
+	GetPlaylistDetails() *PlaylistDetails
+}
+
+type Destination interface {
+	FindTracks([]string, chan<- SongDetails)
+	AddPlaylist(string, []string) error
+}
+
+type SetPlaylist interface {
+	GetPlaylistDetails() *PlaylistDetails
 }

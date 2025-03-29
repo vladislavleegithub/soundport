@@ -5,35 +5,30 @@ import (
 	"encoding/json"
 	"net/http"
 	"sync"
+
+	"github.com/Samarthbhat52/soundport/api/types"
 )
 
 const batchSize = 50
 
-func GetSongInfo(songs []string, ch chan<- []string) {
-	// Batch requests
+func (c *Client) FindTracks(songs []string, ch chan<- types.SongDetails) {
 	for start, end := 0, 0; start <= len(songs)-1; start = end {
-		end = start + batchSize
-		if end > len(songs) {
-			end = len(songs)
-		}
+		end = min(start+batchSize, len(songs))
 
 		batchedSongs := songs[start:end]
-		batchProcess(batchedSongs, ch)
+		c.batchProcess(batchedSongs, ch)
 	}
 
 	close(ch)
 }
 
-func batchProcess(songs []string, ch chan<- []string) {
-	ctx := initContext()
-	client := &http.Client{}
-
+func (c *Client) batchProcess(songs []string, ch chan<- types.SongDetails) {
 	var wg sync.WaitGroup
 	for _, song := range songs {
 		wg.Add(1)
 
 		body := SearchRequestBody{
-			Ctx:    ctx,
+			Ctx:    c.ctx,
 			Params: PARAM,
 			Query:  song,
 		}
@@ -52,12 +47,17 @@ func batchProcess(songs []string, ch chan<- []string) {
 		go func() {
 			defer wg.Done()
 
-			resp, err := client.Do(req)
+			resp, err := c.client.Do(req)
 			if err != nil {
 				glbLogger.Println("Error sending request: ", err)
 				return
 			}
 			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				glbLogger.Println("Error sending request: ", resp.StatusCode)
+				return
+			}
 
 			// Read body into a struct
 			ret := ResponseStruct{}
@@ -69,7 +69,19 @@ func batchProcess(songs []string, ch chan<- []string) {
 			}
 
 			vidId := getVideoId(&ret)
-			ch <- []string{song, vidId}
+			if vidId != "" {
+				ch <- types.SongDetails{
+					Name:  song,
+					Id:    vidId,
+					Found: true,
+				}
+			} else {
+				ch <- types.SongDetails{
+					Name:  song,
+					Id:    "NULL",
+					Found: false,
+				}
+			}
 		}()
 	}
 	wg.Wait()
