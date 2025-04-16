@@ -4,76 +4,39 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
-
-	"github.com/spf13/viper"
 )
 
-type StatusType string
-
-func (c *Client) AddPlaylist(title string, songs []string) error {
-	glbLogger.Printf("TOTAL SONGS FOUND: %d", len(songs))
-
-	// prep body
-	body := CreatePlaylistRequestBody{
+func (c *Client) CreatePlaylist(name string, desc string) (string, error) {
+	body := CreatePlaylist{
 		Ctx:           c.ctx,
-		Title:         title,
-		PrivacyStatus: "PRIVATE",
-		VideoIds:      songs,
+		Title:         name,
+		PrivacyStatus: PRIVATE,
 	}
 
 	reqBody, err := json.Marshal(body)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	req, err := http.NewRequest("POST", YTMUSIC_PLAYLIST, bytes.NewBuffer(reqBody))
+	resp, err := c.makeRequest(YTMUSIC_PLAYLIST, bytes.NewBuffer(reqBody))
 	if err != nil {
-		return err
-	}
-
-	// Prep headers
-	err = constructHeader(req)
-	if err != nil {
-		return err
-	}
-
-	resp, err := c.client.Do(req)
-	if err != nil {
-		return err
+		return "", err
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("got error code: %d", resp.StatusCode)
-	}
+	respStruct := struct {
+		PlaylistID string `json:"playlistId"`
+	}{}
 
-	_, err = io.ReadAll(resp.Body)
+	decoder := json.NewDecoder(resp.Body)
+	err = decoder.Decode(&respStruct)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
-}
-
-func constructHeader(req *http.Request) error {
-	// Init base headers
-	initHeaders(req)
-
-	visitorId, err := getVisitorId()
-	if err != nil {
-		glbLogger.Println("error getting visitor id: ", err)
-		return err
+	if respStruct.PlaylistID == "" {
+		return "", fmt.Errorf("unable to create playlist. Something went wrong")
 	}
 
-	cookie := viper.GetString("yt-cookie")
-	authHeader := viper.GetString("yt-auth-token")
-
-	// Add the remaining two headers
-	req.Header.Add("X-Goog-Visitor-Id", visitorId)
-	req.Header.Add("authorization", authHeader)
-	req.Header.Add("Cookie", cookie)
-
-	return nil
+	return respStruct.PlaylistID, nil
 }

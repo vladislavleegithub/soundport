@@ -2,6 +2,7 @@ package port
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/Samarthbhat52/soundport/api/types"
 	tea "github.com/charmbracelet/bubbletea"
@@ -34,7 +35,15 @@ func (m *portModel) updatePlaylists(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			selected := item.GetPlaylistDetails()
-			m.ch = make(chan types.SongDetails, selected.TotalTracks)
+			plId, err := m.dst.CreatePlaylist(selected.PlName, selected.PlDesc)
+			if err != nil {
+				m.quitting = true
+				// TODO: Handle error better
+				glbLogger.Println("Error creating playlist: ", err.Error())
+				os.Exit(1)
+			}
+
+			m.createdPlId = plId
 			m.selected = selected
 
 			return m, plSelected()

@@ -19,7 +19,13 @@ type SongDetails struct {
 	Found bool
 }
 
+type ensureAuth interface {
+	EnsureInit()
+	EnsureLogin()
+}
+
 type Source interface {
+	// ensureAuth
 	GetPlaylists() ([]list.Item, error)
 	GetPlaylistTracks(string) ([]string, error)
 }
@@ -30,8 +36,9 @@ type Playlist interface {
 }
 
 type Destination interface {
-	FindTracks([]string, chan<- SongDetails)
-	AddPlaylist(string, []string) error
+	ensureAuth
+	CreatePlaylist(name string, desc string) (string, error)
+	AddTracks(plId string, tracks []string) bool
 }
 
 type SetPlaylist interface {

@@ -9,23 +9,19 @@ import (
 	"github.com/Samarthbhat52/soundport/api/ytmusic"
 	"github.com/Samarthbhat52/soundport/logger"
 	"github.com/charmbracelet/bubbles/list"
-	"github.com/charmbracelet/bubbles/progress"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 var glbLogger = logger.GetInstance()
 
 type portModel struct {
-	songs     []string
-	ch        chan types.SongDetails
-	selected  *types.PlaylistDetails
-	src       types.Source
-	dst       types.Destination
-	playlists list.Model
-	progress  progress.Model
-	total     int
-	percent   float64
-	quitting  bool
+	songs       []string
+	selected    *types.PlaylistDetails
+	createdPlId string
+	src         types.Source
+	dst         types.Destination
+	playlists   list.Model
+	quitting    bool
 }
 
 type (
@@ -61,14 +57,10 @@ func NewPortModel() *portModel {
 	l := list.New(playlists, list.NewDefaultDelegate(), 20, 10)
 	l.Title = "Choose a playlist"
 
-	// Init progress bar
-	prog := progress.New(progress.WithDefaultGradient())
-
 	return &portModel{
 		src:       src,
 		dst:       dest,
 		playlists: l,
-		progress:  prog,
 	}
 }
 

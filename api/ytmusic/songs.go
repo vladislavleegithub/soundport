@@ -3,27 +3,67 @@ package ytmusic
 import (
 	"bytes"
 	"encoding/json"
-	"net/http"
 	"sync"
-
-	"github.com/Samarthbhat52/soundport/api/types"
 )
 
 const batchSize = 50
 
-func (c *Client) FindTracks(songs []string, ch chan<- types.SongDetails) {
-	for start, end := 0, 0; start <= len(songs)-1; start = end {
-		end = min(start+batchSize, len(songs))
-
-		batchedSongs := songs[start:end]
-		c.batchProcess(batchedSongs, ch)
-	}
-
-	close(ch)
+type actions struct {
+	VideoId      string `json:"addedVideoId"`
+	Action       string `json:"action"`
+	DeDupeOption string `json:"dedupeOption"`
 }
 
-func (c *Client) batchProcess(songs []string, ch chan<- types.SongDetails) {
+type addTracks struct {
+	Ctx        *Context  `json:"context"`
+	PlaylistID string    `json:"playlistId"`
+	Actions    []actions `json:"actions"`
+}
+
+func (c *Client) AddTracks(plId string, tracks []string) bool {
+	for start, end := 0, 0; start <= len(tracks)-1; start = end {
+		end = min(start+batchSize, len(tracks))
+
+		batch := tracks[start:end]
+		vidIdChan := make(chan string, len(batch))
+
+		c.findTracks(batch, vidIdChan)
+
+		// Construct the 'actions' field required by ytmusic api
+		vidIdList := make([]actions, len(batch))
+		for vidId := range vidIdChan {
+			vidIdList = append(vidIdList, actions{
+				VideoId:      vidId,
+				Action:       "ACTION_ADD_VIDEO",
+				DeDupeOption: "DEDUPE_OPTION_CHECK",
+			})
+		}
+
+		body := addTracks{
+			Ctx:        c.ctx,
+			Actions:    vidIdList,
+			PlaylistID: plId,
+		}
+
+		reqBody, err := json.Marshal(body)
+		if err != nil {
+			glbLogger.Println("Error constructing body: ", err)
+			return false
+		}
+
+		_, err = c.makeRequest(YTMUSIC_PLAYLIST_UPDATE, bytes.NewBuffer(reqBody))
+		if err != nil {
+			glbLogger.Println("Error sending request: ", err)
+			return false
+		}
+	}
+
+	return true
+}
+
+func (c *Client) findTracks(songs []string, ch chan<- string) {
 	var wg sync.WaitGroup
+
 	for _, song := range songs {
 		wg.Add(1)
 
@@ -32,32 +72,22 @@ func (c *Client) batchProcess(songs []string, ch chan<- types.SongDetails) {
 			Params: PARAM,
 			Query:  song,
 		}
+
 		reqBody, err := json.Marshal(body)
 		if err != nil {
 			glbLogger.Println("Error constructing body: ", err)
 			return
 		}
 
-		req, err := http.NewRequest("POST", YTMUSIC_SEARCH, bytes.NewBuffer(reqBody))
-		if err != nil {
-			glbLogger.Println("Error constructing request: ", err)
-			return
-		}
-
 		go func() {
 			defer wg.Done()
 
-			resp, err := c.client.Do(req)
+			resp, err := c.makeRequest(YTMUSIC_SEARCH, bytes.NewBuffer(reqBody))
 			if err != nil {
-				glbLogger.Println("Error sending request: ", err)
+				glbLogger.Println("Error constructing body: ", err)
 				return
 			}
 			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusOK {
-				glbLogger.Println("Error sending request: ", resp.StatusCode)
-				return
-			}
 
 			// Read body into a struct
 			ret := ResponseStruct{}
@@ -69,22 +99,12 @@ func (c *Client) batchProcess(songs []string, ch chan<- types.SongDetails) {
 			}
 
 			vidId := getVideoId(&ret)
-			if vidId != "" {
-				ch <- types.SongDetails{
-					Name:  song,
-					Id:    vidId,
-					Found: true,
-				}
-			} else {
-				ch <- types.SongDetails{
-					Name:  song,
-					Id:    "NULL",
-					Found: false,
-				}
-			}
+
+			ch <- vidId
 		}()
 	}
 	wg.Wait()
+	close(ch)
 }
 
 func getVideoId(ret *ResponseStruct) string {
