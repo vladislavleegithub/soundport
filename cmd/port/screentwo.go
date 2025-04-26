@@ -15,7 +15,7 @@ func (m *portModel) updatePortProgress(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg.(type) {
 	case playlistSelected:
 		// Get all the tracks present in source playlist.
-		tracks, err := m.src.GetPlaylistTracks(m.selected.PlId)
+		tracks, err := m.src.GetPlaylistTracks(m.selectedPlId)
 		if err != nil {
 			glbLogger.Println("err: ", err.Error())
 			m.quitting = true
@@ -30,10 +30,6 @@ func (m *portModel) updatePortProgress(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		glbLogger.Println("unable to add tracks")
-		m.quitting = true
-		return m, tea.Quit
-
-	case playlistCreated:
 		m.quitting = true
 		return m, tea.Quit
 

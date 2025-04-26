@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Samarthbhat52/soundport/api/types"
+	"github.com/Samarthbhat52/soundport/api"
 	"github.com/charmbracelet/bubbles/list"
 )
 
@@ -23,8 +23,8 @@ type Playlist struct {
 func (p Playlist) FilterValue() string { return p.Name }
 func (p Playlist) Title() string       { return p.Name }
 func (p Playlist) Description() string { return fmt.Sprintf("Num tracks: %d", p.Tracks.Total) }
-func (p Playlist) GetPlaylistDetails() *types.PlaylistDetails {
-	selected := types.PlaylistDetails{}
+func (p Playlist) GetPlaylistDetails() *api.PlaylistDetails {
+	selected := api.PlaylistDetails{}
 
 	selected.PlId = p.Tracks.Link
 	selected.PlName = p.Name

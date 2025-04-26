@@ -8,6 +8,12 @@ import (
 
 const batchSize = 50
 
+type findTracksReq struct {
+	Ctx    *Context `json:"context"`
+	Query  string   `json:"query"`
+	Params string   `json:"params"`
+}
+
 type actions struct {
 	VideoId      string `json:"addedVideoId"`
 	Action       string `json:"action"`
@@ -74,7 +80,7 @@ func (c *Client) findTracks(songs []string, ch chan<- string) {
 		go func() {
 			defer wg.Done()
 
-			body := SearchRequestBody{
+			body := findTracksReq{
 				Ctx:    c.ctx,
 				Params: PARAM,
 				Query:  song,

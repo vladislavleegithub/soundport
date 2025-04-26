@@ -7,6 +7,13 @@ import (
 	"io"
 )
 
+type CreatePlaylist struct {
+	Ctx           *Context   `json:"context"`
+	Title         string     `json:"title"`
+	Description   string     `json:"description"`
+	PrivacyStatus StatusType `json:"privacyStatus"`
+}
+
 func (c *Client) CreatePlaylist(name string, desc string) (string, error) {
 	body := CreatePlaylist{
 		Ctx:           c.ctx,

@@ -29,19 +29,6 @@ const (
 
 var glbLogger = logger.GetInstance()
 
-type SearchRequestBody struct {
-	Ctx    *Context `json:"context"`
-	Query  string   `json:"query"`
-	Params string   `json:"params"`
-}
-
-type CreatePlaylist struct {
-	Ctx           *Context   `json:"context"`
-	Title         string     `json:"title"`
-	Description   string     `json:"description"`
-	PrivacyStatus StatusType `json:"privacyStatus"`
-}
-
 type Context struct {
 	Client struct {
 		Hl            string `json:"hl"`

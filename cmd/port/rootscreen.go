@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/Samarthbhat52/soundport/api"
 	"github.com/Samarthbhat52/soundport/api/spotify"
-	"github.com/Samarthbhat52/soundport/api/types"
 	"github.com/Samarthbhat52/soundport/api/ytmusic"
 	"github.com/Samarthbhat52/soundport/logger"
 	"github.com/charmbracelet/bubbles/list"
@@ -15,26 +15,25 @@ import (
 var glbLogger = logger.GetInstance()
 
 type portModel struct {
-	songs       []string
-	selected    *types.PlaylistDetails
-	createdPlId string
-	src         types.Source
-	dst         types.Destination
-	playlists   list.Model
-	quitting    bool
-	successful  bool
+	songs        []string
+	selectedPlId string
+	createdPlId  string
+	src          api.Source
+	dst          api.Destination
+	playlists    list.Model
+	quitting     bool
+	successful   bool
 }
 
 type (
-	playlistSelected   struct{}
-	playlistCreated    struct{}
-	songSearchComplete bool
+	playlistSelected struct{}
+	playlistCreated  struct{}
 )
 
 func NewPortModel() *portModel {
 	// Init source and destination
-	var src types.Source
-	var dest types.Destination
+	var src api.Source
+	var dest api.Destination
 
 	switch srcFlag {
 	default:
@@ -79,7 +78,7 @@ func (m portModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	if m.selected == nil {
+	if m.selectedPlId == "" {
 		return m.updatePlaylists(msg)
 	}
 
@@ -93,7 +92,7 @@ func (m portModel) View() string {
 		return "Something to show when quitting"
 	}
 
-	if m.selected == nil {
+	if m.selectedPlId == "" {
 		s = m.viewPlaylists()
 	} else {
 		s = m.viewPortProgress()

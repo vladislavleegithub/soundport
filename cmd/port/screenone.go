@@ -1,10 +1,7 @@
 package port
 
 import (
-	"fmt"
-	"os"
-
-	"github.com/Samarthbhat52/soundport/api/types"
+	"github.com/Samarthbhat52/soundport/api"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -27,10 +24,10 @@ func (m *portModel) updatePlaylists(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "enter":
-			item, ok := m.playlists.SelectedItem().(types.Playlist)
+			item, ok := m.playlists.SelectedItem().(api.Playlist)
 			if !ok {
-				fmt.Println("Improper types in selected item")
-				// TODO: Add proper error handling
+				m.quitting = true
+				glbLogger.Println("Selected playlist does not implement the `Playlist` interface.")
 				return m, tea.Quit
 			}
 
@@ -38,13 +35,12 @@ func (m *portModel) updatePlaylists(msg tea.Msg) (tea.Model, tea.Cmd) {
 			plId, err := m.dst.CreatePlaylist(selected.PlName, selected.PlDesc)
 			if err != nil {
 				m.quitting = true
-				// TODO: Handle error better
 				glbLogger.Println("Error creating playlist: ", err.Error())
-				os.Exit(1)
+				return m, tea.Quit
 			}
 
 			m.createdPlId = plId
-			m.selected = selected
+			m.selectedPlId = selected.PlId
 
 			return m, plSelected()
 		}
