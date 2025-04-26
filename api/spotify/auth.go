@@ -32,9 +32,8 @@ type credentials struct {
 
 // Used for making authenticated queries to spotify api
 type auth struct {
-	accessToken  string
-	refreshToken string
-	expiresAt    time.Time
+	accessToken string
+	playlistUrl string
 }
 
 func NewCredentials() *credentials {
@@ -51,16 +50,12 @@ func NewCredentials() *credentials {
 	}
 }
 
-func NewAuth() (*auth, error) {
+func NewClient() *auth {
 	accessToken := viper.GetString("spfy-access")
-	refreshToken := viper.GetString("spfy-refresh")
-	expiresAt := viper.GetTime("spfy-expires-at")
 
 	return &auth{
-		accessToken:  accessToken,
-		refreshToken: refreshToken,
-		expiresAt:    expiresAt,
-	}, nil
+		accessToken: accessToken,
+	}
 }
 
 func getAccessToken(authCode string) error {

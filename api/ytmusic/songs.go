@@ -3,58 +3,97 @@ package ytmusic
 import (
 	"bytes"
 	"encoding/json"
-	"net/http"
 	"sync"
 )
 
 const batchSize = 50
 
-func GetSongInfo(songs []string, ch chan<- []string) {
-	// Batch requests
-	for start, end := 0, 0; start <= len(songs)-1; start = end {
-		end = start + batchSize
-		if end > len(songs) {
-			end = len(songs)
-		}
-
-		batchedSongs := songs[start:end]
-		batchProcess(batchedSongs, ch)
-	}
-
-	close(ch)
+type findTracksReq struct {
+	Ctx    *Context `json:"context"`
+	Query  string   `json:"query"`
+	Params string   `json:"params"`
 }
 
-func batchProcess(songs []string, ch chan<- []string) {
-	ctx := initContext()
-	client := &http.Client{}
+type actions struct {
+	VideoId      string `json:"addedVideoId"`
+	Action       string `json:"action"`
+	DeDupeOption string `json:"dedupeOption"`
+}
 
-	var wg sync.WaitGroup
-	for _, song := range songs {
-		wg.Add(1)
+type addTracks struct {
+	Ctx        *Context  `json:"context"`
+	PlaylistID string    `json:"playlistId"`
+	Actions    []actions `json:"actions"`
+}
 
-		body := SearchRequestBody{
-			Ctx:    ctx,
-			Params: PARAM,
-			Query:  song,
+func (c *Client) AddTracks(plId string, tracks []string) bool {
+	for start, end := 0, 0; start <= len(tracks)-1; start = end {
+		end = min(start+batchSize, len(tracks))
+
+		batch := tracks[start:end]
+		vidIdChan := make(chan string, len(batch))
+
+		c.findTracks(batch, vidIdChan)
+
+		vidIdList := []actions{}
+		// Construct the 'actions' field required by ytmusic api
+		for vidId := range vidIdChan {
+			if vidId != "" {
+				vidIdList = append(vidIdList, actions{
+					VideoId:      vidId,
+					Action:       "ACTION_ADD_VIDEO",
+					DeDupeOption: "DEDUPE_OPTION_SKIP",
+				})
+			}
 		}
+		body := addTracks{
+			Ctx:        c.ctx,
+			Actions:    vidIdList,
+			PlaylistID: plId,
+		}
+
 		reqBody, err := json.Marshal(body)
 		if err != nil {
 			glbLogger.Println("Error constructing body: ", err)
-			return
+			return false
 		}
 
-		req, err := http.NewRequest("POST", YTMUSIC_SEARCH, bytes.NewBuffer(reqBody))
+		glbLogger.Println("Len of final songs list: ", len(vidIdList))
+
+		_, err = c.makeRequest(YTMUSIC_PLAYLIST_UPDATE, bytes.NewBuffer(reqBody))
 		if err != nil {
-			glbLogger.Println("Error constructing request: ", err)
-			return
+			glbLogger.Println("Error sending request: ", err)
+			return false
 		}
+
+	}
+
+	return true
+}
+
+func (c *Client) findTracks(songs []string, ch chan<- string) {
+	var wg sync.WaitGroup
+
+	for _, song := range songs {
+		wg.Add(1)
 
 		go func() {
 			defer wg.Done()
 
-			resp, err := client.Do(req)
+			body := findTracksReq{
+				Ctx:    c.ctx,
+				Params: PARAM,
+				Query:  song,
+			}
+
+			reqBody, err := json.Marshal(body)
 			if err != nil {
-				glbLogger.Println("Error sending request: ", err)
+				glbLogger.Println("Error constructing body: ", err)
+				return
+			}
+			resp, err := c.makeRequest(YTMUSIC_SEARCH, bytes.NewBuffer(reqBody))
+			if err != nil {
+				glbLogger.Println("Error constructing body: ", err)
 				return
 			}
 			defer resp.Body.Close()
@@ -69,10 +108,14 @@ func batchProcess(songs []string, ch chan<- []string) {
 			}
 
 			vidId := getVideoId(&ret)
-			ch <- []string{song, vidId}
+			if vidId == "" {
+				glbLogger.Println("Not found song: ", song)
+			}
+			ch <- vidId
 		}()
 	}
 	wg.Wait()
+	close(ch)
 }
 
 func getVideoId(ret *ResponseStruct) string {

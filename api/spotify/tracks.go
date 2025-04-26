@@ -18,42 +18,63 @@ type Track struct {
 }
 
 type PlaylistTracks struct {
-	Total  int `json:"total"`
+	Next   string `json:"next"`
+	Total  int    `json:"total"`
 	Tracks []struct {
 		Track Track `json:"track"`
 	} `json:"items"`
 }
 
-func (a *auth) GetTracks(tracksUrl string) (PlaylistTracks, error) {
-	// setup auth herader
+func (a *auth) GetPlaylistTracks(plId string) ([]string, error) {
+	var finalSongs []string
 	authHeader := fmt.Sprintf("Bearer %s", a.accessToken)
 
-	// prep request
-	req, err := http.NewRequest("GET", tracksUrl, nil)
-	if err != nil {
-		return PlaylistTracks{}, nil
-	}
-	req.Header.Add("Authorization", authHeader)
+	for {
+		if plId == "" {
+			break
+		}
 
-	// send response
-	client := http.DefaultClient
-	resp, err := client.Do(req)
-	if err != nil {
-		return PlaylistTracks{}, err
-	}
-	defer resp.Body.Close()
+		// prep request
+		req, err := http.NewRequest("GET", plId, nil)
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Add("Authorization", authHeader)
 
-	if resp.StatusCode != http.StatusOK {
-		return PlaylistTracks{}, errors.New("unable to fetch songs")
+		// send response
+		client := http.DefaultClient
+		resp, err := client.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return nil, errors.New("unable to fetch songs")
+		}
+
+		// decode response
+		tracks := PlaylistTracks{}
+		decoder := json.NewDecoder(resp.Body)
+		err = decoder.Decode(&tracks)
+		if err != nil {
+			return nil, err
+		}
+
+		trackNames := getTracksString(tracks)
+		finalSongs = append(finalSongs, trackNames...)
+
+		plId = tracks.Next
+	}
+	return finalSongs, nil
+}
+
+func getTracksString(pl PlaylistTracks) []string {
+	var songs []string
+	for _, val := range pl.Tracks {
+		songName := fmt.Sprintf("%s By %s", val.Track.Name, val.Track.Artists[0].Name)
+		songs = append(songs, songName)
 	}
 
-	// decode response
-	tracks := PlaylistTracks{}
-	decoder := json.NewDecoder(resp.Body)
-	err = decoder.Decode(&tracks)
-	if err != nil {
-		return PlaylistTracks{}, err
-	}
-
-	return tracks, nil
+	return songs
 }
