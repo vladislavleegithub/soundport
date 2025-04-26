@@ -31,12 +31,14 @@ func (c *Client) AddTracks(plId string, tracks []string) bool {
 
 		// Construct the 'actions' field required by ytmusic api
 		vidIdList := make([]actions, len(batch))
+		i := 0
 		for vidId := range vidIdChan {
-			vidIdList = append(vidIdList, actions{
+			vidIdList[i] = actions{
 				VideoId:      vidId,
 				Action:       "ACTION_ADD_VIDEO",
 				DeDupeOption: "DEDUPE_OPTION_CHECK",
-			})
+			}
+			i++
 		}
 
 		body := addTracks{
@@ -67,21 +69,20 @@ func (c *Client) findTracks(songs []string, ch chan<- string) {
 	for _, song := range songs {
 		wg.Add(1)
 
-		body := SearchRequestBody{
-			Ctx:    c.ctx,
-			Params: PARAM,
-			Query:  song,
-		}
-
-		reqBody, err := json.Marshal(body)
-		if err != nil {
-			glbLogger.Println("Error constructing body: ", err)
-			return
-		}
-
 		go func() {
 			defer wg.Done()
 
+			body := SearchRequestBody{
+				Ctx:    c.ctx,
+				Params: PARAM,
+				Query:  song,
+			}
+
+			reqBody, err := json.Marshal(body)
+			if err != nil {
+				glbLogger.Println("Error constructing body: ", err)
+				return
+			}
 			resp, err := c.makeRequest(YTMUSIC_SEARCH, bytes.NewBuffer(reqBody))
 			if err != nil {
 				glbLogger.Println("Error constructing body: ", err)
@@ -99,8 +100,11 @@ func (c *Client) findTracks(songs []string, ch chan<- string) {
 			}
 
 			vidId := getVideoId(&ret)
-
-			ch <- vidId
+			if vidId == "" {
+				glbLogger.Println("Not found song: ", song)
+			} else {
+				ch <- vidId
+			}
 		}()
 	}
 	wg.Wait()

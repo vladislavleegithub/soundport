@@ -23,11 +23,13 @@ func (m *portModel) updatePortProgress(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		if ok := m.dst.AddTracks(m.createdPlId, tracks); ok {
+			m.successful = true
+			m.quitting = true
 			// Add a something that will show that playlist successfully created.
-			return m, nil
+			return m, tea.Quit
 		}
 
-		glbLogger.Println("unable to add tracks: ", err)
+		glbLogger.Println("unable to add tracks")
 		m.quitting = true
 		return m, tea.Quit
 
@@ -45,6 +47,10 @@ func (m *portModel) viewPortProgress() string {
 	s += strings.Repeat(" ", padding)
 
 	s += "Finding songs..."
+
+	if m.successful {
+		s = "Completed porting tracks."
+	}
 
 	if m.quitting {
 		s += "\n"

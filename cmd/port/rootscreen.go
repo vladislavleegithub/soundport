@@ -22,6 +22,7 @@ type portModel struct {
 	dst         types.Destination
 	playlists   list.Model
 	quitting    bool
+	successful  bool
 }
 
 type (

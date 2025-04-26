@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 )
 
 func (c *Client) CreatePlaylist(name string, desc string) (string, error) {
@@ -28,10 +29,14 @@ func (c *Client) CreatePlaylist(name string, desc string) (string, error) {
 		PlaylistID string `json:"playlistId"`
 	}{}
 
-	decoder := json.NewDecoder(resp.Body)
-	err = decoder.Decode(&respStruct)
+	bodyBytes, _ := io.ReadAll(resp.Body)
+	if len(bodyBytes) == 0 {
+		return "", fmt.Errorf("empty response body")
+	}
+
+	err = json.Unmarshal(bodyBytes, &respStruct)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error decoding playlistid: %s", err)
 	}
 
 	if respStruct.PlaylistID == "" {

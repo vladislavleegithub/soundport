@@ -5,7 +5,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Samarthbhat52/soundport/api/ytmusic"
 	"github.com/Samarthbhat52/soundport/logger"
 	"github.com/Samarthbhat52/soundport/ui"
 	"github.com/charmbracelet/huh"
@@ -48,13 +47,6 @@ var ytmusicSetup = &cobra.Command{
 			os.Exit(1)
 		}
 
-		authHeader, err := ytmusic.GetAuthToken(ytmusicCookie)
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-
-		viper.Set("yt-auth-token", authHeader)
 		viper.Set("yt-cookie", ytmusicCookie)
 
 		status.WriteString(ui.Green.Render("Setup successful\n"))

@@ -3,6 +3,7 @@ package ytmusic
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"regexp"
@@ -34,6 +35,10 @@ func getVisitorId() (string, error) {
 		return "", err
 	}
 
+	if len(matches) < 2 {
+		return "", fmt.Errorf("unable to find visitor id: %v", matches)
+	}
+
 	// Unmarshal to get visitor id
 	visitorIdStruct := struct {
 		VisitorId string `json:"VISITOR_DATA"`
@@ -54,11 +59,16 @@ func sendGetRequest() (*http.Response, error) {
 		return nil, err
 	}
 
-	initHeaders(req)
+	headers := baseHeaders()
+	req.Header = headers
 
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("got error code: %v", resp.StatusCode)
 	}
 
 	return resp, nil
