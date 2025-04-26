@@ -29,18 +29,17 @@ func (c *Client) AddTracks(plId string, tracks []string) bool {
 
 		c.findTracks(batch, vidIdChan)
 
+		vidIdList := []actions{}
 		// Construct the 'actions' field required by ytmusic api
-		vidIdList := make([]actions, len(batch))
-		i := 0
 		for vidId := range vidIdChan {
-			vidIdList[i] = actions{
-				VideoId:      vidId,
-				Action:       "ACTION_ADD_VIDEO",
-				DeDupeOption: "DEDUPE_OPTION_CHECK",
+			if vidId != "" {
+				vidIdList = append(vidIdList, actions{
+					VideoId:      vidId,
+					Action:       "ACTION_ADD_VIDEO",
+					DeDupeOption: "DEDUPE_OPTION_SKIP",
+				})
 			}
-			i++
 		}
-
 		body := addTracks{
 			Ctx:        c.ctx,
 			Actions:    vidIdList,
@@ -53,11 +52,14 @@ func (c *Client) AddTracks(plId string, tracks []string) bool {
 			return false
 		}
 
+		glbLogger.Println("Len of final songs list: ", len(vidIdList))
+
 		_, err = c.makeRequest(YTMUSIC_PLAYLIST_UPDATE, bytes.NewBuffer(reqBody))
 		if err != nil {
 			glbLogger.Println("Error sending request: ", err)
 			return false
 		}
+
 	}
 
 	return true
@@ -102,9 +104,8 @@ func (c *Client) findTracks(songs []string, ch chan<- string) {
 			vidId := getVideoId(&ret)
 			if vidId == "" {
 				glbLogger.Println("Not found song: ", song)
-			} else {
-				ch <- vidId
 			}
+			ch <- vidId
 		}()
 	}
 	wg.Wait()
