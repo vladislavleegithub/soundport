@@ -23,13 +23,13 @@ var spfyForm = huh.NewForm(
 	huh.NewGroup(
 		huh.NewInput().
 			Title("Client ID").
-			Description("Enetr your spotify client ID").
+			Description("Enter your spotify client ID").
 			Value(&spfyClientId).
 			Validate(huh.ValidateNotEmpty()),
 
 		huh.NewInput().
 			Title("Client Secret").
-			Description("Enetr your spotify client secret").
+			Description("Enter your spotify client secret").
 			Value(&spfyClientSecret).
 			Validate(huh.ValidateNotEmpty()),
 	).Title("Spotify setup").WithWidth(20),
