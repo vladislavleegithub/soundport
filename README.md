@@ -2,6 +2,13 @@
 
 SoundPort is a command-line tool that enables users to transfer playlists from Spotify to YouTube Music seamlessly.
 
+*recorded with [asciinema](https://asciinema.org/)*
+
+![soundport](https://github.com/user-attachments/assets/baacb601-39ed-45f5-b48c-bdb80f8f833c)
+
+> [!IMPORTANT]
+> Please read this entire README carefully before proceeding with installation and setup. This document contains important information about limitations, authentication requirements, and potential issues you may encounter. Understanding these details upfront will help ensure a smooth experience with SoundPort.
+
 ## Index
 
 - [Prerequisites](#prerequisites)
@@ -62,6 +69,8 @@ go install
    - Agree to Spotify's Developer Terms of Service
    - Save changes
 
+![Screenshot 2025-06-02 at 6 32 27 PM](https://github.com/user-attachments/assets/8035e1c7-15d2-4c95-9296-d1e48c25b840)
+
 3. **Retrieve Credentials**
 
    - On the Spotify Developer Dashboard, select your project.
@@ -99,7 +108,7 @@ To overcome the API limitation, SoundPort mimics legitimate browser requests.
 ![Screenshot 2025-03-25 at 6 45 03 PM](https://github.com/user-attachments/assets/49b79f92-e16b-4bde-805c-593b22cca067)
 
 - Click on the request, Scroll till you find `Request Headers` section.
-- Copy the `Cookie` property of the request header. Copy everything from 	`__Secure-ROLLOUT_TOKEN` to the end.
+- Copy the **value** of `Cookie` property of the request header.
   
 ![Screenshot 2025-03-25 at 6 47 44 PM](https://github.com/user-attachments/assets/1a26bb3a-3391-4841-9570-58238e60ef86)
 
@@ -120,7 +129,7 @@ To overcome the API limitation, SoundPort mimics legitimate browser requests.
 > [!CAUTION]
 > **Important Warning**
 > * Never share your cookie with anyone.
-> * Cookies can provide significant account access.
+> * Cookies can provide significant account access, Not contained to youtube music, but any Google apps in general.
 > * The cookie saved in `SoundPort` is saved on your local system and secure.
 
 ## Running the `port` command
@@ -129,7 +138,8 @@ Before running the port command, ensure you have completed the setup for both se
 
 1. **Spotify Setup**: Run `soundport spotify setup` to configure your Spotify developer credentials
 2. **Spotify Login**: Run `soundport spotify login` to authenticate with your Spotify account
-3. **YouTube Music Setup**: Run `soundport ytmusic setup` to configure your YouTube Music cookie
+     - *If* an error page is displayed after clicking `Accept`, close the tab, re-click the link and click on `Accept` again.
+4. **YouTube Music Setup**: Run `soundport ytmusic setup` to configure your YouTube Music cookie
 
 ### Running the Port Process
 
