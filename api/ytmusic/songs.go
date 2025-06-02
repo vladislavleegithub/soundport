@@ -110,7 +110,7 @@ func (c *Client) findTracks(songs []string, ch chan<- string) {
 
 			vidId := getVideoId(&ret)
 			if vidId == "" {
-				glbLogger.Println("Not found song: ", song)
+				nfLogger.Println("Not found: ", song)
 			}
 			ch <- vidId
 		}()

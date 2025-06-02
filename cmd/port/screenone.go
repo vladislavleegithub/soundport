@@ -23,15 +23,17 @@ func (m *portModel) updatePlaylists(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "enter":
+		case "enter": // Select a playlist from source
 			item, ok := m.playlists.SelectedItem().(api.Playlist)
 			if !ok {
-				m.quitting = true
 				glbLogger.Println("Selected playlist does not implement the `Playlist` interface.")
+				m.quitting = true
 				return m, tea.Quit
 			}
 
 			selected := item.GetPlaylistDetails()
+
+			// Create a destination playlist first which we will add to later.
 			plId, err := m.dst.CreatePlaylist(selected.PlName, selected.PlDesc)
 			if err != nil {
 				glbLogger.Println("Error creating playlist: ", err.Error())
@@ -40,16 +42,20 @@ func (m *portModel) updatePlaylists(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			m.createdPlId = plId
+			// Will be used to pull out songs belonging to the source playlist.
 			m.selectedPlId = selected.PlId
 
 			return m, plSelected()
 		}
 	}
+
 	var cmd tea.Cmd
 	m.playlists, cmd = m.playlists.Update(msg)
 	return m, cmd
 }
 
 func (m *portModel) viewPlaylists() string {
+	// Render all the playlists to be selected from,
+	// in a bubble tea default list view.
 	return docStyle.Render(m.playlists.View())
 }

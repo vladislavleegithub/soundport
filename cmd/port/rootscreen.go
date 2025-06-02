@@ -20,7 +20,7 @@ type portModel struct {
 	statusMessage string
 	src           api.Source
 	dst           api.Destination
-	playlists     list.Model
+	playlists     list.Model // List of playlists in source provider
 	quitting      bool
 	successful    bool
 }
@@ -30,19 +30,39 @@ type (
 	playlistCreated  struct{}
 )
 
+func createSourceClient(srcFlag string) (api.Source, error) {
+	switch srcFlag {
+	case "spfy":
+		return spotify.NewClient(), nil
+	default:
+		return nil, fmt.Errorf("invalid source flag '%s': only accepts 'spfy'", srcFlag)
+	}
+}
+
+func createDestClient(destFlag string) (api.Destination, error) {
+	switch destFlag {
+	case "ytmusic":
+		return ytmusic.NewClient(), nil
+	default:
+		return nil, fmt.Errorf("invalid destination flag '%s': only accepts 'ytmusic'", destFlag)
+	}
+}
+
 func NewPortModel() *portModel {
 	// Init source and destination
 	var src api.Source
 	var dest api.Destination
 
-	switch srcFlag {
-	default:
-		src = spotify.NewClient()
+	src, err := createSourceClient(srcFlag)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
 	}
 
-	switch destFlag {
-	default:
-		dest = ytmusic.NewClient()
+	dest, err = createDestClient(destFlag)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
 	}
 
 	// Get source playlists

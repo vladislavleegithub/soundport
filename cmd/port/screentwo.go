@@ -22,22 +22,20 @@ func (m *portModel) updatePortProgress(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		if addedTracks, ok := m.dst.AddTracks(m.createdPlId, tracks); ok {
-			m.successful = true
-
-			// TODO: Add the file for it properly
 			message.WriteString(fmt.Sprintf("Added %d out of %d total songs.", addedTracks, len(tracks)))
 
 			if addedTracks != len(tracks) {
-				message.WriteString("\nRun " + ui.Accent.Render("cat '<file-name>'") + " to get the list of songs that failed to port.")
+				message.WriteString("\nRun " + ui.Accent.Render("cat '/tmp/sp_notfound.log'") + " to get the list of songs that failed to port.")
 			}
 
 			m.statusMessage = message.String()
-
+			m.successful = true
 			m.quitting = true
 			// Add a something that will show that playlist successfully created.
 			return m, tea.Quit
 		}
 
+		// Cat the log files to know what happened here
 		glbLogger.Println("unable to add tracks")
 		m.quitting = true
 		return m, tea.Quit
