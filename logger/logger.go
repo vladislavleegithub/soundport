@@ -19,19 +19,20 @@ type globalLogger struct {
 var (
 	glbLogger *globalLogger
 	nfLogger  *notFoundLogger
-	once      sync.Once
+	glbOnce   sync.Once
+	nfOnce    sync.Once
 )
 
 // start loggeando
 func GetInstance() *globalLogger {
-	once.Do(func() {
+	glbOnce.Do(func() {
 		glbLogger = createLogger("/tmp/soundport.log")
 	})
 	return glbLogger
 }
 
 func GetNotFoundLogInstance() *notFoundLogger {
-	once.Do(func() {
+	nfOnce.Do(func() {
 		nfLogger = createNfLogger("/tmp/sp_notfound.log")
 	})
 	return nfLogger

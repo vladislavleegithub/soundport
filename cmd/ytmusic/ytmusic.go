@@ -47,7 +47,9 @@ var ytmusicSetup = &cobra.Command{
 			os.Exit(1)
 		}
 
-		viper.Set("yt-cookie", ytmusicCookie)
+		cleanedCookie := strings.ReplaceAll(ytmusicCookie, "\u0026", "")
+
+		viper.Set("yt-cookie", cleanedCookie)
 		err = viper.WriteConfig()
 		if err != nil {
 			glbLogger.Println("Error writing configuration:", err)
