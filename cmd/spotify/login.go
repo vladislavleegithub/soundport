@@ -24,13 +24,17 @@ var loginCmd = &cobra.Command{
 
 		creds := spotify.NewCredentials()
 
-		message.WriteString("Click on " + ui.Accent.Render("Accept") + " in the browser popup\n")
-		fmt.Println(message.String())
-
 		ch := make(chan int)
 		// Handles callback
 		go creds.StartHttpServer(ch)
-		go creds.OpenBrowser()
+
+		hyperlink := fmt.Sprintf("\x1b]8;;%s\x07%s\x1b]8;;\x07", creds.AuthUrl, "This link")
+
+		message.WriteString(
+			"Click on " + ui.Accent.Render(hyperlink) + "\nand 'Accept' the terms of spotify.",
+		)
+		fmt.Println(message.String())
+
 		val := <-ch
 
 		if val == 0 {
@@ -40,7 +44,6 @@ var loginCmd = &cobra.Command{
 			status.WriteString(ui.Red.Render("Login failed\n"))
 			fmt.Println(status.String())
 		}
-		fmt.Printf("Browser window/tab can be closed.\n\n")
 	},
 }
 

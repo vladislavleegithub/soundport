@@ -6,22 +6,44 @@ import (
 	"sync"
 )
 
+type notFoundLogger struct {
+	filename string
+	*log.Logger
+}
+
 type globalLogger struct {
 	filename string
 	*log.Logger
 }
 
 var (
-	logger *globalLogger
-	once   sync.Once
+	glbLogger *globalLogger
+	nfLogger  *notFoundLogger
+	once      sync.Once
 )
 
 // start loggeando
 func GetInstance() *globalLogger {
 	once.Do(func() {
-		logger = createLogger("/tmp/soundport.log")
+		glbLogger = createLogger("/tmp/soundport.log")
 	})
-	return logger
+	return glbLogger
+}
+
+func GetNotFoundLogInstance() *notFoundLogger {
+	once.Do(func() {
+		nfLogger = createNfLogger("/tmp/sp_notfound.log")
+	})
+	return nfLogger
+}
+
+func createNfLogger(fname string) *notFoundLogger {
+	file, _ := os.OpenFile(fname, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777)
+
+	return &notFoundLogger{
+		filename: fname,
+		Logger:   log.New(file, "Log: ", log.LstdFlags),
+	}
 }
 
 func createLogger(fname string) *globalLogger {

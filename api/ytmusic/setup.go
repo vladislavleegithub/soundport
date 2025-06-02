@@ -27,7 +27,10 @@ const (
 	PUBLIC  StatusType = "PUBLIC"
 )
 
-var glbLogger = logger.GetInstance()
+var (
+	glbLogger = logger.GetInstance()
+	nfLogger  = logger.GetNotFoundLogInstance()
+)
 
 type Context struct {
 	Client struct {
@@ -102,7 +105,7 @@ func postHeader() (http.Header, error) {
 func NewClient() *Client {
 	h, err := postHeader()
 	if err != nil {
-		// TODO: Handle this better.
+		fmt.Println("Error creating a youtube music client.")
 		os.Exit(1)
 	}
 
@@ -132,15 +135,3 @@ func (c *Client) makeRequest(url string, body *bytes.Buffer) (*http.Response, er
 
 	return resp, nil
 }
-
-func (c *Client) EnsureInit() {
-	ytCookie := viper.GetString("yt-cookie")
-	if ytCookie == "" {
-		fmt.Println("Not setup youtube")
-		fmt.Println("Please run `soundport ytmusic setup`")
-		os.Exit(1)
-	}
-}
-
-// Does nothing. ytmusic only needs cookie to work.
-func (c *Client) EnsureLogin() {}
