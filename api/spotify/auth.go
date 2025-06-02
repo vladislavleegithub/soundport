@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/Samarthbhat52/soundport/logger"
-	"github.com/pkg/browser"
 	"github.com/spf13/viper"
 )
 
@@ -27,7 +26,7 @@ type credentials struct {
 	clientId     string
 	clientSecret string
 	state        string
-	authUrl      string
+	AuthUrl      string
 }
 
 // Used for making authenticated queries to spotify api
@@ -46,7 +45,7 @@ func NewCredentials() *credentials {
 		clientId:     clientId,
 		clientSecret: clientSecret,
 		state:        state,
-		authUrl:      url,
+		AuthUrl:      url,
 	}
 }
 
@@ -139,10 +138,4 @@ func (c *credentials) StartHttpServer(ch chan int) error {
 	http.HandleFunc("/callback", handleCallback)
 
 	return http.ListenAndServe(server_url, nil)
-}
-
-func (c *credentials) OpenBrowser() {
-	browser.Stdout = nil
-	browser.Stderr = nil
-	browser.OpenURL(c.authUrl)
 }

@@ -15,14 +15,14 @@ import (
 var glbLogger = logger.GetInstance()
 
 type portModel struct {
-	songs        []string
-	selectedPlId string
-	createdPlId  string
-	src          api.Source
-	dst          api.Destination
-	playlists    list.Model
-	quitting     bool
-	successful   bool
+	selectedPlId  string
+	createdPlId   string
+	statusMessage string
+	src           api.Source
+	dst           api.Destination
+	playlists     list.Model
+	quitting      bool
+	successful    bool
 }
 
 type (
@@ -87,10 +87,6 @@ func (m portModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m portModel) View() string {
 	var s string
-
-	if m.quitting {
-		return "Something to show when quitting"
-	}
 
 	if m.selectedPlId == "" {
 		s = m.viewPlaylists()

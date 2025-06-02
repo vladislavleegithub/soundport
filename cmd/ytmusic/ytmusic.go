@@ -28,7 +28,7 @@ var ytmForm = huh.NewForm(
 			Title("YT Music cookie").
 			Description("Eneter your YT Music cookie").
 			Value(&ytmusicCookie).
-			CharLimit(1810).
+			CharLimit(2000).
 			Validate(huh.ValidateNotEmpty()),
 	).Title("YT Music setup"),
 )
@@ -48,6 +48,12 @@ var ytmusicSetup = &cobra.Command{
 		}
 
 		viper.Set("yt-cookie", ytmusicCookie)
+		err = viper.WriteConfig()
+		if err != nil {
+			glbLogger.Println("Error writing configuration:", err)
+			status.WriteString(ui.Red.Render("Error writing configuration\n"))
+			os.Exit(1)
+		}
 
 		status.WriteString(ui.Green.Render("Setup successful\n"))
 		fmt.Println(status.String())

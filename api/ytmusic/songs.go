@@ -26,7 +26,9 @@ type addTracks struct {
 	Actions    []actions `json:"actions"`
 }
 
-func (c *Client) AddTracks(plId string, tracks []string) bool {
+func (c *Client) AddTracks(plId string, tracks []string) (int, bool) {
+	total_songs_added := 0
+
 	for start, end := 0, 0; start <= len(tracks)-1; start = end {
 		end = min(start+batchSize, len(tracks))
 
@@ -44,6 +46,7 @@ func (c *Client) AddTracks(plId string, tracks []string) bool {
 					Action:       "ACTION_ADD_VIDEO",
 					DeDupeOption: "DEDUPE_OPTION_SKIP",
 				})
+				total_songs_added += 1
 			}
 		}
 		body := addTracks{
@@ -55,20 +58,18 @@ func (c *Client) AddTracks(plId string, tracks []string) bool {
 		reqBody, err := json.Marshal(body)
 		if err != nil {
 			glbLogger.Println("Error constructing body: ", err)
-			return false
+			return 0, false
 		}
-
-		glbLogger.Println("Len of final songs list: ", len(vidIdList))
 
 		_, err = c.makeRequest(YTMUSIC_PLAYLIST_UPDATE, bytes.NewBuffer(reqBody))
 		if err != nil {
 			glbLogger.Println("Error sending request: ", err)
-			return false
+			return 0, false
 		}
 
 	}
 
-	return true
+	return total_songs_added, true
 }
 
 func (c *Client) findTracks(songs []string, ch chan<- string) {

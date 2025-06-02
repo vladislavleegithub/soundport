@@ -29,10 +29,7 @@ func (a *auth) GetPlaylistTracks(plId string) ([]string, error) {
 	var finalSongs []string
 	authHeader := fmt.Sprintf("Bearer %s", a.accessToken)
 
-	for {
-		if plId == "" {
-			break
-		}
+	for plId != "" {
 
 		// prep request
 		req, err := http.NewRequest("GET", plId, nil)

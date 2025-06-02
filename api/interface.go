@@ -23,5 +23,5 @@ type Source interface {
 type Destination interface {
 	ensureAuth
 	CreatePlaylist(name string, desc string) (string, error)
-	AddTracks(plId string, tracks []string) bool
+	AddTracks(plId string, tracks []string) (int, bool)
 }

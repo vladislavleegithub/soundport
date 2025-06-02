@@ -34,8 +34,8 @@ func (m *portModel) updatePlaylists(msg tea.Msg) (tea.Model, tea.Cmd) {
 			selected := item.GetPlaylistDetails()
 			plId, err := m.dst.CreatePlaylist(selected.PlName, selected.PlDesc)
 			if err != nil {
-				m.quitting = true
 				glbLogger.Println("Error creating playlist: ", err.Error())
+				m.quitting = true
 				return m, tea.Quit
 			}
 

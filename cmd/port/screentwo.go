@@ -1,19 +1,18 @@
 package port
 
 import (
+	"fmt"
 	"strings"
 
+	"github.com/Samarthbhat52/soundport/ui"
 	tea "github.com/charmbracelet/bubbletea"
-)
-
-const (
-	padding  = 2
-	maxWidth = 80
 )
 
 func (m *portModel) updatePortProgress(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg.(type) {
 	case playlistSelected:
+		var message strings.Builder
+
 		// Get all the tracks present in source playlist.
 		tracks, err := m.src.GetPlaylistTracks(m.selectedPlId)
 		if err != nil {
@@ -22,8 +21,18 @@ func (m *portModel) updatePortProgress(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 
-		if ok := m.dst.AddTracks(m.createdPlId, tracks); ok {
+		if addedTracks, ok := m.dst.AddTracks(m.createdPlId, tracks); ok {
 			m.successful = true
+
+			// TODO: Add the file for it properly
+			message.WriteString(fmt.Sprintf("Added %d out of %d total songs.", addedTracks, len(tracks)))
+
+			if addedTracks != len(tracks) {
+				message.WriteString("\nRun " + ui.Accent.Render("cat '<file-name>'") + " to get the list of songs that failed to port.")
+			}
+
+			m.statusMessage = message.String()
+
 			m.quitting = true
 			// Add a something that will show that playlist successfully created.
 			return m, tea.Quit
@@ -39,13 +48,12 @@ func (m *portModel) updatePortProgress(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *portModel) viewPortProgress() string {
-	s := "\n"
-	s += strings.Repeat(" ", padding)
-
-	s += "Finding songs..."
+	var s string
+	s += "Porting playlist....\nFinding songs and adding to the new playlist..."
+	s += "\n\n(Press 'q' or 'ctrl+c' to quit)"
 
 	if m.successful {
-		s = "Completed porting tracks."
+		s = m.statusMessage
 	}
 
 	if m.quitting {
