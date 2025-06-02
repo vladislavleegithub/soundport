@@ -30,12 +30,14 @@ type (
 	playlistCreated  struct{}
 )
 
+// TODO: When adding other providers, change the switch case flags.
 func createSourceClient(srcFlag string) (api.Source, error) {
 	switch srcFlag {
 	case "spfy":
 		return spotify.NewClient(), nil
 	default:
-		return nil, fmt.Errorf("invalid source flag '%s': only accepts 'spfy'", srcFlag)
+		return spotify.NewClient(), nil
+		// return nil, fmt.Errorf("invalid source flag '%s': only accepts 'spfy'", srcFlag)
 	}
 }
 
@@ -44,7 +46,8 @@ func createDestClient(destFlag string) (api.Destination, error) {
 	case "ytmusic":
 		return ytmusic.NewClient(), nil
 	default:
-		return nil, fmt.Errorf("invalid destination flag '%s': only accepts 'ytmusic'", destFlag)
+		return ytmusic.NewClient(), nil
+		// return nil, fmt.Errorf("invalid destination flag '%s': only accepts 'ytmusic'", destFlag)
 	}
 }
 

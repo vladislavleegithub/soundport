@@ -37,7 +37,6 @@ func init() {
 		StringVarP(&srcFlag, "src", "s", "", "Source platform to move the playlist from")
 	PortCmd.Flags().
 		StringVarP(&destFlag, "dest", "d", "", "Destination platform to move the playlist to")
-	PortCmd.MarkFlagsRequiredTogether("src", "dest")
 }
 
 func ensureLogin(cmd *cobra.Command, args []string) {
