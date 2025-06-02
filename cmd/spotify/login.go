@@ -31,7 +31,9 @@ var loginCmd = &cobra.Command{
 		hyperlink := fmt.Sprintf("\x1b]8;;%s\x07%s\x1b]8;;\x07", creds.AuthUrl, "This link")
 
 		message.WriteString(
-			"Click on " + ui.Accent.Render(hyperlink) + "\nand 'Accept' the terms of spotify.",
+			"ctrl/cmd + click on " + ui.Accent.Render(
+				hyperlink,
+			) + "\nand 'Accept' the terms of spotify.",
 		)
 		fmt.Println(message.String())
 
