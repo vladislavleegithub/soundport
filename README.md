@@ -90,7 +90,7 @@ To overcome the API limitation, SoundPort mimics legitimate browser requests.
 
 ### Obtaining Your YouTube Music Cookie.
 
-- Go to  [Youtube Music homepage](music.youtube.com)
+- Go to  [Youtube Music homepage](https://music.youtube.com)
 - Open developer tools and select the “Network” tab.
 - To find an Authenticated `POST` request, filer the requests by `/browse` using the search bar.
   
