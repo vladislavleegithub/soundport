@@ -8,14 +8,16 @@ SoundPort is a command-line tool that enables users to transfer playlists from S
 - [Installation](#installation)
 - [Spotify setup](#spotify-setup)
   - [How to Obtain Spotify Developer Credentials](#how-to-obtain-spotify-developer-credentials)
-  - [Configure in SoundPort](#configure-in-soundport)
 - [YouTube Music Setup](#youtube-music-setup)
   - [The API Limitation](#the-api-limitation)
   - [Authentication Approach: Browser Request Mimicry](#authentication-approach-browser-request-mimicry)
   - [How It Works](#how-it-works)
   - [Obtaining Your YouTube Music Cookie](#obtaining-your-youtube-music-cookie)
-  - [Configure in SoundPort](#configure-in-soundport-1)
+  - [Cookie Limitations and Caveats](#cookie-limitations-and-caveats)
 - [Running the `port` command](#running-the-port-command)
+  - [Prerequisites](#prerequisites-1)
+  - [Running the Port Process](#running-the-port-process)
+
 
 ## Prerequisites
 
@@ -70,11 +72,6 @@ go install
      - Click the `View client secret` link and copy both Client ID and Client Secret.
    - Keep these credentials secure and do not share publicly
 
-### Configure in SoundPort
-
-- Use `soundport spotify setup` to input your credentials.
-- The tool will store and manage these tokens on your system.
-
 ## Youtube Music Setup
 
 ### The API Limitation
@@ -106,10 +103,19 @@ To overcome the API limitation, SoundPort mimics legitimate browser requests.
   
 ![Screenshot 2025-03-25 at 6 47 44 PM](https://github.com/user-attachments/assets/1a26bb3a-3391-4841-9570-58238e60ef86)
 
-### Configure in SoundPort
+### Cookie Limitations and Caveats
 
-- Use `soundport ytmusic setup`.
-- Paste the copied cookie in the textarea and press `Enter`.
+> [!NOTE] 
+> * **Cookie Expiration**: YouTube Music cookies are rotated regularly by Google. Your cookie may expire anywhere from a couple of months to a couple of years, and there's no way to predict exactly when this will happen.
+> 
+> * **Re-authentication Required**: When your cookie expires, you'll need to repeat the cookie extraction process to continue using SoundPort.
+> 
+> * **Incognito Recommended**: For best results and longer cookie lifespan, obtain the cookie from an incognito/private browsing tab.
+> 
+> * **Google Changes**: This CLI tool relies on mimicking Google's web authentication requests. **SoundPort will only work as long as Google doesn't change how they authenticate web requests.** Any changes to Google's authentication system may break the tool's functionality.
+> 
+> * **No Guarantee of Longevity**: Due to the unofficial nature of this authentication method, there's no guarantee that SoundPort will continue to work indefinitely.
+
 
 > [!CAUTION]
 > **Important Warning**
@@ -118,9 +124,18 @@ To overcome the API limitation, SoundPort mimics legitimate browser requests.
 > * The cookie saved in `SoundPort` is saved on your local system and secure.
 
 ## Running the `port` command
+### Prerequisites
+Before running the port command, ensure you have completed the setup for both services:
 
-After both ytmusic and spotify have been setup:
-- Run `soundport port` command.
-- Select the playlist you want to port.
-- And thats it.
+1. **Spotify Setup**: Run `soundport spotify setup` to configure your Spotify developer credentials
+2. **Spotify Login**: Run `soundport spotify login` to authenticate with your Spotify account
+3. **YouTube Music Setup**: Run `soundport ytmusic setup` to configure your YouTube Music cookie
+
+### Running the Port Process
+
+After both YouTube Music and Spotify have been setup:
+1. Run `soundport port` command
+2. Select the playlist you want to port from the interactive menu
+3. SoundPort will transfer all tracks from the selected Spotify playlist to YouTube Music
+4. And that's it!
 
