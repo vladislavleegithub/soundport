@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Samarthbhat52/soundport/logger"
 	"github.com/spf13/viper"
+	"github.com/vladislavleegithub/soundport/logger"
 )
 
 var glbLogger = logger.GetInstance()

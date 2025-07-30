@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Samarthbhat52/soundport/api"
-	"github.com/Samarthbhat52/soundport/api/spotify"
-	"github.com/Samarthbhat52/soundport/api/ytmusic"
-	"github.com/Samarthbhat52/soundport/logger"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/vladislavleegithub/soundport/api"
+	"github.com/vladislavleegithub/soundport/api/spotify"
+	"github.com/vladislavleegithub/soundport/api/ytmusic"
+	"github.com/vladislavleegithub/soundport/logger"
 )
 
 var glbLogger = logger.GetInstance()

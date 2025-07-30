@@ -5,11 +5,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Samarthbhat52/soundport/logger"
-	"github.com/Samarthbhat52/soundport/ui"
 	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/vladislavleegithub/soundport/logger"
+	"github.com/vladislavleegithub/soundport/ui"
 )
 
 var glbLogger = logger.GetInstance()

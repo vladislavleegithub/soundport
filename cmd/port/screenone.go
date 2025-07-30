@@ -1,9 +1,9 @@
 package port
 
 import (
-	"github.com/Samarthbhat52/soundport/api"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/vladislavleegithub/soundport/api"
 )
 
 var docStyle = lipgloss.NewStyle().Margin(1, 2)

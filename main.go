@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/Samarthbhat52/soundport/cmd"
+	"github.com/vladislavleegithub/soundport/cmd"
 )
 
 func main() {

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Samarthbhat52/soundport/api"
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/vladislavleegithub/soundport/api"
 )
 
 type Playlist struct {

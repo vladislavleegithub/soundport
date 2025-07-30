@@ -7,9 +7,9 @@ import (
 
 	"github.com/spf13/viper"
 
-	"github.com/Samarthbhat52/soundport/api/spotify"
-	"github.com/Samarthbhat52/soundport/ui"
 	"github.com/spf13/cobra"
+	"github.com/vladislavleegithub/soundport/api/spotify"
+	"github.com/vladislavleegithub/soundport/ui"
 )
 
 var loginCmd = &cobra.Command{

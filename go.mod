@@ -1,4 +1,4 @@
-module github.com/Samarthbhat52/soundport
+module github.com/vladislavleegithub/soundport
 
 go 1.23.0
 

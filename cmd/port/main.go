@@ -6,10 +6,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/Samarthbhat52/soundport/api/spotify"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/vladislavleegithub/soundport/api/spotify"
 )
 
 var (

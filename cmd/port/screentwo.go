@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Samarthbhat52/soundport/ui"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/vladislavleegithub/soundport/ui"
 )
 
 func (m *portModel) updatePortProgress(msg tea.Msg) (tea.Model, tea.Cmd) {

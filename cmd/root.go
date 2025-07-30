@@ -5,11 +5,11 @@ import (
 	"os"
 	"path"
 
-	"github.com/Samarthbhat52/soundport/cmd/port"
-	"github.com/Samarthbhat52/soundport/cmd/spotify"
-	"github.com/Samarthbhat52/soundport/cmd/ytmusic"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/vladislavleegithub/soundport/cmd/port"
+	"github.com/vladislavleegithub/soundport/cmd/spotify"
+	"github.com/vladislavleegithub/soundport/cmd/ytmusic"
 )
 
 const CONFIG_FILE_NAME = ".soundport.json"
