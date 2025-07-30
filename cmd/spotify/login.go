@@ -35,7 +35,7 @@ var loginCmd = &cobra.Command{
 		// 		hyperlink,
 		// 	) + "\nand 'Accept' the terms of spotify.",
 		// )
-
+		fmt.Println("DEBUG - Auth URL:", creds.AuthUrl) // Добавьте эту строку
 		// Выводим полный URL в чистом виде
 		message.WriteString(
 			"Auth URL: " + creds.AuthUrl + "\n" +
