@@ -2,7 +2,6 @@ package spotify
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -38,6 +37,7 @@ func (p Playlist) GetPlaylistDetails() *api.PlaylistDetails {
 type spfyPlaylists struct {
 	Total         int        `json:"total"`
 	ItemPlaylists []Playlist `json:"items"`
+	Next          string     `json:"next"` // URL следующей страницы (если есть)
 }
 
 func (s *spfyPlaylists) GetPlaylistItems() []list.Item {
@@ -51,36 +51,52 @@ func (s *spfyPlaylists) GetPlaylistItems() []list.Item {
 }
 
 func (a *auth) GetPlaylists() ([]list.Item, error) {
-	// setup auth herader
-	authHeader := fmt.Sprintf("Bearer %s", a.accessToken)
+	var allPlaylists []Playlist
+	url := playlist_url // Начинаем с базового URL
 
-	// Prep request
-	req, err := http.NewRequest("GET", playlist_url, nil)
-	if err != nil {
-		return nil, err
+	for {
+		// 1. Формируем запрос
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", a.accessToken))
+
+		// 2. Отправляем запрос
+		client := http.DefaultClient
+		resp, err := client.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return nil, fmt.Errorf("API error: %s", resp.Status)
+		}
+
+		// 3. Парсим ответ
+		var response spfyPlaylists
+		if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+			return nil, err
+		}
+
+		// 4. Добавляем плейлисты в общий список
+		allPlaylists = append(allPlaylists, response.ItemPlaylists...)
+
+		// 5. Если следующей страницы нет — выходим
+		if response.Next == "" {
+			break
+		}
+
+		// 6. Иначе переходим на следующую страницу
+		url = response.Next
 	}
-	req.Header.Add("Authorization", authHeader)
 
-	client := http.DefaultClient
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		fmt.Println("ERROR: ", resp.Status)
-		return nil, errors.New("unsuccessful request")
+	// 7. Конвертируем в формат для bubbletea
+	items := make([]list.Item, len(allPlaylists))
+	for i, pl := range allPlaylists {
+		items[i] = pl
 	}
 
-	playlists := spfyPlaylists{}
-	decoder := json.NewDecoder(resp.Body)
-	err = decoder.Decode(&playlists)
-	if err != nil {
-		return nil, err
-	}
-
-	playlistItems := playlists.GetPlaylistItems()
-
-	return playlistItems, nil
+	return items, nil
 }
