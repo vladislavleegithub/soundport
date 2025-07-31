@@ -28,14 +28,6 @@ var loginCmd = &cobra.Command{
 		// Handles callback
 		go creds.StartHttpServer(ch)
 
-		// hyperlink := fmt.Sprintf("\x1b]8;;%s\x07%s\x1b]8;;\x07", creds.AuthUrl, "This link")
-
-		// message.WriteString(
-		// 	"ctrl/cmd + click on " + ui.Accent.Render(
-		// 		hyperlink,
-		// 	) + "\nand 'Accept' the terms of spotify.",
-		// )
-
 		message.WriteString(
 			"Auth URL: " + creds.AuthUrl + "\n" +
 				"Open this link in your browser and 'Accept' the terms of Spotify.",
